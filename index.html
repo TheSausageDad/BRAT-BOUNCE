@@ -4,40 +4,70 @@
     <meta charset="UTF-8" />
     <title>BRAT BOUNCE</title>
     <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@0.3.0/dist/index.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <style>
       html,
       body {
         margin: 0;
         padding: 0;
         overflow: hidden;
+        background-color: #1a1a2e;
+        width: 100%;
+        height: 100%;
       }
       body {
         touch-action: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #body-container {
+        position: relative;
+        /* Width and height set by JavaScript resizeGame() */
       }
 
       canvas {
         display: block;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
       }
 
-      #pausePlay,
-      #playagain,
-      #startplay,
-      #resume {
+      #startpage {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 100;
+        touch-action: manipulation;
+      }
+
+      #startpage > img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+      }
+
+      #startplay {
         position: absolute;
         z-index: 10;
-      }
-      #playagain,
-      #startplay,
-      #resume {
         top: 70%;
         left: 50%;
         transform: translateX(-50%);
+        cursor: pointer;
+        touch-action: manipulation;
       }
-      #resume {
-        display: none;
+
+      #startplay img {
+        width: 70%;
+        max-width: 280px;
+        height: auto;
       }
 
       * {
@@ -54,92 +84,18 @@
   <body>
     <div id="body-container">
       <canvas id="body-canvas"></canvas>
-    </div>
-    <div
-      id="touch-controls"
-      style="position: absolute; bottom: 20px; left: 20px; display: none; gap: 20px; z-index: 1000"
-    >
-      <button id="left-btn" style="width: 70px; height: 70px; font-size: 28px">←</button>
-      <button id="right-btn" style="width: 70px; height: 70px; font-size: 28px">→</button>
-    </div>
 
-    <div id="fire-button" style="position: absolute; bottom: 20px; right: 20px; display: none; z-index: 1000">
-      <button id="shoot-btn" style="width: 80px; height: 80px; font-size: 28px">🔥</button>
-    </div>
-
-    <div
-      id="popup-image"
-      style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: black;
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-      "
-    >
-      <img
-        src="https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Controls-R7Tbhb8Jzx5Lb3fO29XoR142UxOyCG.png?pcAQ"
-        style="max-width: 100%; max-height: 100%"
-      />
-      <button
-        id="popup-close-btn"
-        style="
-          position: absolute;
-          bottom: 85px;
-          left: 50%;
-          transform: translateX(-50%);
-          padding: 12px 24px;
-          font-size: 18px;
-          background-color: white;
-          border: none;
-          border-radius: 10px;
-          cursor: pointer;
-          z-index: 10001;
-        "
-      >
-        CLOSE
-      </button>
-    </div>
-
-    <div id="startpage">
-      <img
-        src="https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Start%20Page%20frfr-ibR3UsRyvA1LVaixfM9GPzrobuYfHT.png?6Vth"
-      />
-      <div id="startplay">
+      <div id="startpage">
         <img
-          src="https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Play%20Button-pKQ9mqrNsNLKEPa27lmEqiFEIHeWlw.png?52BK"
-          style="width: 60vw; max-width: 450px; height: auto"
+          src="public/assets/background/main-menu.png"
+          loading="lazy"
         />
-      </div>
-
-      <div id="pcinstruction">
-        <span>INSTRUCTIONS</span>
-        <span>Left - A</span>
-        <span>Right - D</span>
-        <span>Shoot - Space</span>
-      </div>
-      <div id="mobileinstruction">
-        <span>INSTRUCTIONS</span>
-        <span>← Tilt Left</span>
-        <span>→ Tilt Right</span>
-        <span>Tap - Shoot</span>
-      </div>
-    </div>
-
-    <div id="pause-container">
-      <img
-        src="https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Pause%20Page-NGywJryfGnNaiOPsRyIPNIIL5CIn2G.png?MTcB"
-      />
-      <div id="resume">
-        <img
-          src="https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Resume%20Button-HqILiVILE4ScU9vPwIijBWOv4iqt0Y.png?6XsE"
-        />
+        <div id="startplay">
+          <img
+            src="public/assets/buttons/play-button.png"
+            loading="lazy"
+          />
+        </div>
       </div>
     </div>
 
@@ -147,21 +103,21 @@
       // ==========================================
       // CONSTANTS - All magic numbers in one place
       // ==========================================
-      const CANVAS_HEIGHT = window.innerHeight;
-      const CANVAS_WIDTH = window.innerWidth;
+      const CANVAS_HEIGHT = 600;
+      const CANVAS_WIDTH = 400;
 
-      // Player constants
-      const DOODLE_WIDTH = 35;
-      const DOODLE_HEIGHT = 60;
+      // Player constants (square character image)
+      const DOODLE_WIDTH = 70;
+      const DOODLE_HEIGHT = 70;
       const PLAYER_GRAVITY = 0.2;
       const PLAYER_MOVE_SPEED = 5.5;
       const PLAYER_DRUNK_SPEED = 6.5;
 
-      // Platform constants
-      const PLATFORM_WIDTH = 60;
-      const PLATFORM_HEIGHT = 18;
-      const PLATFORM_GAP_MIN = 50;
-      const PLATFORM_GAP_MAX = 70;
+      // Platform constants (1.5:1 ratio images)
+      const PLATFORM_WIDTH = 70;
+      const PLATFORM_HEIGHT = 47;
+      const PLATFORM_GAP_MIN = 80;
+      const PLATFORM_GAP_MAX = 110;
 
       // Bullet constants
       const BULLET_RADIUS = 5;
@@ -563,15 +519,22 @@
           this.x = x;
           this.y = y;
           this.booster = booster;
-          if (type == 1 || type == 2) {
-            this.height = 25;
-            this.width = 50;
+          if (type == 1) {
+            // Trampoline - bigger for visibility
+            this.width = 85;
+            this.height = 57;
+          } else if (type == 2) {
+            // Spring (1.5:1 ratio image)
+            this.width = 60;
+            this.height = 40;
           } else if (type == 4) {
-            this.width = 40;
-            this.height = 27;
+            // Drinking glass potion (square image)
+            this.width = 50;
+            this.height = 50;
           } else {
-            this.height = 30;
-            this.width = 30;
+            // Jetpack (square image)
+            this.width = 50;
+            this.height = 50;
           }
           this.type = type;
           this.context = context;
@@ -791,10 +754,10 @@
           }
         }
 
-        moveDoodle(Xchange) {
-          this.offset += this.gravity;
-          this.y = this.y + this.offset;
-          this.x += Xchange;
+        moveDoodle(Xchange, deltaTime = 1) {
+          this.offset += this.gravity * deltaTime;
+          this.y = this.y + this.offset * deltaTime;
+          this.x += Xchange * deltaTime;
 
           // Set rotation based on movement
           this.targetRotation = Xchange * 0.02;
@@ -864,10 +827,12 @@
               this.direction === "isFalling"
             ) {
               if (platArray[i].platformType !== 3) {
+                // Yellow platforms give a slightly higher jump
                 if (platArray[i].platformType === 4) {
-                  platArray[i].jumpCount = 1;
+                  this.offset = -(this.jumpRate + 4);
+                } else {
+                  this.offset = -this.jumpRate;
                 }
-                this.offset = -this.jumpRate;
                 this.collisionMode = 1;
 
                 // Visual feedback
@@ -893,7 +858,7 @@
                 this.x <= boosterArray[i].x + boosterArray[i].width &&
                 this.direction === "isFalling"
               ) {
-                this.offset = -20;
+                this.offset = -28;
                 this.collisionMode = 0;
                 this.jump();
                 audioManager.play('trampoline', 0.7);
@@ -968,19 +933,29 @@
           this.context = context;
 
           if (this.type === 1) {
-            this.width = 120;
-            this.height = 120;
-            this.hitboxOffsetX = 30;
-            this.hitboxOffsetY = 55;
+            // Death hole (square image) - smaller hitbox for fairness
+            this.width = 80;
+            this.height = 80;
+            this.hitboxOffsetX = 25;
+            this.hitboxOffsetY = 25;
+            this.hitboxWidth = this.width - this.hitboxOffsetX * 2;
+            this.hitboxHeight = this.height - this.hitboxOffsetY * 2;
+          } else if (this.type === 5 || this.type === 6) {
+            // Potions (square images) - generous hitbox for pickups
+            this.width = 50;
+            this.height = 50;
+            this.hitboxOffsetX = 5;
+            this.hitboxOffsetY = 5;
             this.hitboxWidth = this.width - this.hitboxOffsetX * 2;
             this.hitboxHeight = this.height - this.hitboxOffsetY * 2;
           } else {
-            this.width = 50;
-            this.height = 50;
-            this.hitboxOffsetX = 0;
-            this.hitboxOffsetY = 0;
-            this.hitboxWidth = this.width;
-            this.hitboxHeight = this.height;
+            // Enemies (square images) - smaller hitbox for fairness
+            this.width = 55;
+            this.height = 55;
+            this.hitboxOffsetX = 12;
+            this.hitboxOffsetY = 12;
+            this.hitboxWidth = this.width - this.hitboxOffsetX * 2;
+            this.hitboxHeight = this.height - this.hitboxOffsetY * 2;
           }
 
           this.xSpeed = 2;
@@ -1012,25 +987,25 @@
           this.y += -value;
         }
 
-        individualMotion() {
+        individualMotion(deltaTime = 1) {
           if (this.type === 2) {
-            this.x += this.xSpeed;
+            this.x += this.xSpeed * deltaTime;
             if (this.x >= CANVAS_WIDTH - this.width || this.x <= 0) {
               this.xSpeed *= -1;
             }
           }
 
           if (this.type === 3) {
-            this.x += this.xSpeed;
-            this.y += getRandom(-1, 3);
+            this.x += this.xSpeed * deltaTime;
+            this.y += getRandom(-1, 3) * deltaTime;
             if (this.x >= CANVAS_WIDTH - this.width || this.x <= 0) {
               this.xSpeed *= -1;
             }
           }
 
           if (this.type === 4) {
-            this.x += this.xSpeed;
-            this.y += this.ySpeed;
+            this.x += this.xSpeed * deltaTime;
+            this.y += this.ySpeed * deltaTime;
             if (this.x >= CANVAS_WIDTH - this.width) {
               this.xSpeed *= -1;
               this.ySpeed = 1;
@@ -1069,6 +1044,56 @@
           this.scaleY = 1;
           this.targetScaleY = 1;
           this.bounceAmount = 0;
+
+          // Breaking animation properties
+          this.isBreaking = false;
+          this.breakTimer = 0;
+          this.shakeX = 0;
+          this.fallSpeed = 0;
+          this.opacity = 1;
+          this.pieces = [];
+        }
+
+        startBreaking() {
+          this.isBreaking = true;
+          this.breakTimer = 0;
+          audioManager.play('monsterCrash', 0.4);
+          // Create pieces for the breaking effect
+          for (let i = 0; i < 4; i++) {
+            this.pieces.push({
+              x: this.xPosition + (i % 2) * (PLATFORM_WIDTH / 2),
+              y: this.yPosition + Math.floor(i / 2) * (PLATFORM_HEIGHT / 2),
+              vx: (i % 2 === 0 ? -1 : 1) * (Math.random() * 2 + 1),
+              vy: Math.random() * 2,
+              rotation: 0,
+              rotationSpeed: (Math.random() - 0.5) * 0.3
+            });
+          }
+        }
+
+        updateBreaking(deltaTime) {
+          if (!this.isBreaking) return false;
+
+          this.breakTimer += deltaTime;
+
+          // Shake phase (first 10 frames)
+          if (this.breakTimer < 10) {
+            this.shakeX = (Math.random() - 0.5) * 6;
+          } else {
+            // Fall apart phase
+            this.shakeX = 0;
+            this.opacity = Math.max(0, this.opacity - 0.08 * deltaTime);
+
+            for (const piece of this.pieces) {
+              piece.vy += 0.5 * deltaTime;
+              piece.x += piece.vx * deltaTime;
+              piece.y += piece.vy * deltaTime;
+              piece.rotation += piece.rotationSpeed * deltaTime;
+            }
+          }
+
+          // Return true when animation is done
+          return this.opacity <= 0;
         }
 
         bounce() {
@@ -1099,17 +1124,39 @@
             this.context.drawImage(this.movingPlatform, this.xPosition, this.yPosition, PLATFORM_WIDTH, PLATFORM_HEIGHT);
           }
           if (this.platformType === 3) {
-            this.context.drawImage(
-              this.breakingPlatform,
-              this.index * 50,
-              0,
-              50,
-              28,
-              this.xPosition,
-              this.yPosition,
-              PLATFORM_WIDTH,
-              PLATFORM_HEIGHT
-            );
+            this.context.globalAlpha = this.opacity;
+            if (this.isBreaking && this.breakTimer >= 10) {
+              // Draw breaking pieces
+              const pieceW = PLATFORM_WIDTH / 2;
+              const pieceH = PLATFORM_HEIGHT / 2;
+              for (let i = 0; i < this.pieces.length; i++) {
+                const piece = this.pieces[i];
+                this.context.save();
+                this.context.translate(piece.x + pieceW / 2, piece.y + pieceH / 2);
+                this.context.rotate(piece.rotation);
+                // Draw quarter of the platform image
+                const srcX = (i % 2) * (this.breakingPlatform.width / 2);
+                const srcY = Math.floor(i / 2) * (this.breakingPlatform.height / 2);
+                this.context.drawImage(
+                  this.breakingPlatform,
+                  srcX, srcY,
+                  this.breakingPlatform.width / 2, this.breakingPlatform.height / 2,
+                  -pieceW / 2, -pieceH / 2,
+                  pieceW, pieceH
+                );
+                this.context.restore();
+              }
+            } else {
+              // Draw normal or shaking platform
+              this.context.drawImage(
+                this.breakingPlatform,
+                this.xPosition + this.shakeX,
+                this.yPosition,
+                PLATFORM_WIDTH,
+                PLATFORM_HEIGHT
+              );
+            }
+            this.context.globalAlpha = 1;
           }
           if (this.platformType === 4) {
             this.context.drawImage(this.yellowPlatform, this.xPosition, this.yPosition, PLATFORM_WIDTH, PLATFORM_HEIGHT);
@@ -1118,7 +1165,7 @@
           this.context.restore();
         }
 
-        movePlatform(score) {
+        movePlatform(score, deltaTime = 1) {
           if (this.platformType === 2) {
             if (this.xPosition >= CANVAS_WIDTH - this.platformWidth) {
               this.xSpeed = Math.abs(this.xSpeed) * -1;
@@ -1128,7 +1175,7 @@
               this.xSpeed = Math.abs(this.xSpeed);
               this.goingTowards = "right";
             }
-            this.xPosition += this.xSpeed;
+            this.xPosition += this.xSpeed * deltaTime;
           }
         }
 
@@ -1213,19 +1260,40 @@
       // MAIN GAME CLASS
       // ==========================================
       var bodyContainer = document.getElementById("body-container");
-      var pauseContainer = document.getElementById("pause-container");
-      var resume = document.getElementById("resume");
       var element = document.getElementById("body-canvas");
       var startPage = document.getElementById("startpage");
       var playOn = document.getElementById("startplay");
-      var instructions = document.getElementById("pcinstruction");
-      var mobileInstruction = document.getElementById("mobileinstruction");
 
-      startPage.querySelector("img").width = CANVAS_WIDTH;
-      startPage.querySelector("img").height = CANVAS_HEIGHT;
-      pauseContainer.querySelector("img").width = CANVAS_WIDTH;
-      pauseContainer.querySelector("img").height = CANVAS_HEIGHT;
-      startPage.style.height = CANVAS_HEIGHT;
+      // Responsive sizing function
+      function resizeGame() {
+        const container = document.getElementById('body-container');
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+
+        // Game aspect ratio is 2:3 (400x600)
+        const gameRatio = 2 / 3;
+
+        let width, height;
+
+        // Calculate size that fits viewport while maintaining aspect ratio
+        if (vw / vh < gameRatio) {
+          // Viewport is taller than game ratio - fit to width
+          width = vw;
+          height = vw / gameRatio;
+        } else {
+          // Viewport is wider than game ratio - fit to height
+          height = vh;
+          width = vh * gameRatio;
+        }
+
+        // Apply dimensions
+        container.style.width = width + 'px';
+        container.style.height = height + 'px';
+      }
+
+      // Call resize on load and window resize
+      resizeGame();
+      window.addEventListener('resize', resizeGame);
 
       class GAME {
         constructor(element) {
@@ -1314,28 +1382,28 @@
           if (localStorage.getItem("Doodle") == null) {
             localStorage.setItem("Doodle", "0");
           }
-          bodyContainer.style.display = "none";
+          this.canvas.style.display = "none";
           startPage.style.display = "block";
 
-          if (CANVAS_WIDTH < 500) {
-            mobileInstruction.style.display = "block";
-          } else {
-            instructions.style.display = "block";
-          }
-
-          playOn.onclick = () => {
+          this.gameStarted = false;
+          const startGame = () => {
+            if (this.gameStarted) return;
+            this.gameStarted = true;
             startPage.style.display = "none";
-            bodyContainer.style.display = "block";
-            instructions.style.display = "none";
-            mobileInstruction.style.display = "none";
-            document.getElementById("touch-controls").style.display = "flex";
-            document.getElementById("fire-button").style.display = "block";
+            this.canvas.style.display = "block";
             this.init();
             this.bindEvents();
             this.newCanvas();
             this.lastTime = performance.now();
             this.gameLoop();
           };
+
+          // Use pointerdown - works for both touch and mouse
+          playOn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            startGame();
+          });
         }
 
         init() {
@@ -1354,11 +1422,11 @@
           this.eventsBound = true;
 
           document.onkeydown = (event) => {
-            if (event.code === "KeyA") {
+            if (event.code === "KeyA" || event.code === "ArrowLeft") {
               this.doodleXchange = this.drunkenMode ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
               this.leftRight = 1;
             }
-            if (event.code === "KeyD") {
+            if (event.code === "KeyD" || event.code === "ArrowRight") {
               this.doodleXchange = this.drunkenMode ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
               this.leftRight = 0;
             }
@@ -1372,24 +1440,16 @@
           };
 
           document.onkeyup = (event) => {
-            if (event.code === "KeyA" || event.code === "Space") {
+            if (event.code === "KeyA" || event.code === "ArrowLeft" || event.code === "Space") {
               this.leftRight = 0;
             }
             if (event.code === "Space") {
               this.spacePressed = 0;
             }
-            if (event.code === "KeyA" || event.code === "KeyD") {
+            if (event.code === "KeyA" || event.code === "KeyD" || event.code === "ArrowLeft" || event.code === "ArrowRight") {
               if (!this.drunkenMode) {
                 this.doodleXchange = 0;
               }
-            }
-          };
-
-          resume.onclick = () => {
-            if (this.status === "notPlaying") {
-              bodyContainer.style.display = "block";
-              pauseContainer.style.display = "none";
-              this.status = "isPlaying";
             }
           };
 
@@ -1400,37 +1460,48 @@
             this.tapTimer = new Date();
           };
 
-          // Mobile tilt controls
-          if (window.DeviceMotionEvent !== undefined && CANVAS_WIDTH < 500) {
-            window.ondevicemotion = (event) => {
-              this.aX = event.accelerationIncludingGravity.x * 10;
-              this.aY = event.accelerationIncludingGravity.y * 10;
+          // Mobile touch controls - move toward finger position
+          this.touchActive = false;
 
-              if (this.aY < 0) {
-                this.aX = -this.aX - 180;
-              }
+          const handleTouch = (event) => {
+            event.preventDefault();
+            const touch = event.touches[0];
+            const rect = this.canvas.getBoundingClientRect();
 
-              if (this.aX > 15 && this.aX < 97) {
-                this.doodleXchange = this.drunkenMode ? -5.2 : -3.75;
-                if (!this.doodleClicked) this.leftRight = 1;
-              }
-              if (this.aX > -12 && this.aX < -5) {
-                if (!this.drunkenMode) this.doodleXchange = 0;
-                if (!this.doodleClicked) this.leftRight = 0;
-              }
-              if (this.aX > 5 && this.aX < 12) {
-                if (!this.drunkenMode) this.doodleXchange = 0;
-                if (!this.doodleClicked) this.leftRight = 1;
-              }
-              if (this.aX < -15 && this.aX > -97) {
-                this.doodleXchange = this.drunkenMode ? 5.2 : 3.75;
-                if (!this.doodleClicked) this.leftRight = 0;
-              }
-              if (this.aX < -25 || this.aX > 25) {
-                this.doodleClicked = 0;
-              }
-            };
-          }
+            // Convert from CSS pixels to logical game coordinates
+            const scaleX = CANVAS_WIDTH / rect.width;
+            const touchX = (touch.clientX - rect.left) * scaleX;
+            const doodleCenterX = this.doodle.x + this.doodle.width / 2;
+
+            // Move toward finger position
+            if (touchX < doodleCenterX - 20) {
+              this.doodleXchange = this.drunkenMode ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
+              this.leftRight = 1;
+            } else if (touchX > doodleCenterX + 20) {
+              this.doodleXchange = this.drunkenMode ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
+              this.leftRight = 0;
+            } else {
+              if (!this.drunkenMode) this.doodleXchange = 0;
+            }
+          };
+
+          this.canvas.addEventListener('touchstart', (event) => {
+            this.touchActive = true;
+            handleTouch(event);
+          }, { passive: false });
+
+          this.canvas.addEventListener('touchmove', (event) => {
+            if (this.touchActive) {
+              handleTouch(event);
+            }
+          }, { passive: false });
+
+          this.canvas.addEventListener('touchend', () => {
+            this.touchActive = false;
+            if (!this.drunkenMode) {
+              this.doodleXchange = 0;
+            }
+          });
         }
 
         shoot() {
@@ -1496,8 +1567,8 @@
         newPlatform() {
           this.platformSelect();
           let previousY = 0;
-          for (let i = 0; i < 5; i++) {
-            for (let j = 0; j < 5; j++) {
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
               const xPlatform = getRandom(0, CANVAS_WIDTH - 50);
               const yPlatform = previousY + getRandom(PLATFORM_GAP_MIN, PLATFORM_GAP_MAX - 5);
               if (yPlatform <= CANVAS_HEIGHT && this.yStorage.indexOf(yPlatform) === -1) {
@@ -1544,10 +1615,10 @@
         }
 
         newCanvas() {
-          this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
           this.context.fillStyle = "black";
-          this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-          this.context.drawImage(this.backgroundImage, 0, 0, this.canvas.width, this.canvas.height);
+          this.context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          this.context.drawImage(this.backgroundImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         }
 
         doodleChecker() {
@@ -1561,14 +1632,10 @@
 
         platformAlternate() {
           for (let k = 0; k < this.platformArray.length; k++) {
-            if (
-              (this.platformArray[k].jumpCount === 1 && this.platformArray[k].platformType === 4) ||
-              (this.platformArray[k].fakePlatDetect === 1 && this.platformArray[k].platformType === 3)
-            ) {
-              if (this.platformArray[k].platformType === 3) {
-                this.animatingPlatformArray.push(this.platformArray[k]);
-                this.fakePlatAnimation(this.platformArray[k]);
-              }
+            // Only remove breaking platforms (type 3)
+            if (this.platformArray[k].fakePlatDetect === 1 && this.platformArray[k].platformType === 3) {
+              this.animatingPlatformArray.push(this.platformArray[k]);
+              this.fakePlatAnimation(this.platformArray[k]);
               this.platformArray.splice(k, 1);
               k--;
 
@@ -1638,9 +1705,9 @@
           }
         }
 
-        obstaclewiseMotion() {
+        obstaclewiseMotion(deltaTime = 1) {
           for (const obstacle of this.obstacleArray) {
-            obstacle.individualMotion();
+            obstacle.individualMotion(deltaTime);
           }
         }
 
@@ -1772,12 +1839,7 @@
         }
 
         fakePlatAnimation(platform) {
-          const animatePlat = setInterval(() => {
-            platform.index = (platform.index + 1) % 4;
-            if (platform.index === 3) {
-              clearInterval(animatePlat);
-            }
-          }, 65);
+          platform.startBreaking();
         }
 
         drawUI() {
@@ -1853,11 +1915,18 @@
           }
 
           window.FarcadeSDK?.singlePlayer?.actions.gameOver?.({ score: finalScore });
+
+          // Go back to start page after a short delay
+          setTimeout(() => {
+            this.canvas.style.display = "none";
+            startPage.style.display = "block";
+            this.restartGame();
+          }, 1000);
         }
 
         restartGame() {
-          document.getElementById("touch-controls").style.display = "none";
-          document.getElementById("fire-button").style.display = "none";
+          // Allow play button to work again
+          this.gameStarted = false;
 
           // Clear arrays
           this.boosterTypes = [];
@@ -1898,8 +1967,16 @@
 
         gameLoop(currentTime = 0) {
           // Calculate delta time for consistent physics
-          this.deltaTime = Math.min((currentTime - this.lastTime) / 16.67, 3);
-          this.lastTime = currentTime;
+          // Handle first frame or invalid time values
+          if (currentTime === 0 || this.lastTime === 0 || currentTime <= this.lastTime) {
+            this.deltaTime = 1;
+            if (currentTime > 0) {
+              this.lastTime = currentTime;
+            }
+          } else {
+            this.deltaTime = Math.min((currentTime - this.lastTime) / 16.67, 3);
+            this.lastTime = currentTime;
+          }
 
           this.newCanvas();
 
@@ -1937,13 +2014,13 @@
               platform.updateAnimation(this.deltaTime);
               platform.drawPlatform();
               platform.platformSpeed(this.score);
-              platform.movePlatform();
+              platform.movePlatform(this.score, this.deltaTime);
             }
 
             // Update doodle
             this.doodle.doodleJumpSpeed(this.score);
             this.doodle.jumpFromPlatform(this.particleSystem, this.platformArray, this.boosterArray);
-            this.doodle.moveDoodle(this.doodleXchange);
+            this.doodle.moveDoodle(this.doodleXchange, this.deltaTime);
             this.doodle.updateVisuals(this.deltaTime);
             this.doodleChecker();
 
@@ -2062,6 +2139,10 @@
               // Move animating platforms
               for (const platform of this.animatingPlatformArray) {
                 platform.yPosition += scrollAmount;
+                // Also move the breaking pieces
+                for (const piece of platform.pieces) {
+                  piece.y += scrollAmount;
+                }
               }
 
               // Move and recycle platforms
@@ -2123,17 +2204,13 @@
                 this.doodle.y + this.doodle.height / 2
               );
             } else if (value === 2) {
-              // Health restore
-              this.chance = INITIAL_CHANCES;
+              // Add 1 life (up to max 3)
+              if (this.chance < INITIAL_CHANCES) {
+                this.chance++;
+              }
               this.particleSystem.collectPowerup(
                 this.doodle.x + this.doodle.width / 2,
                 this.doodle.y + this.doodle.height / 2
-              );
-              this.floatingTextSystem.add(
-                this.doodle.x + this.doodle.width / 2,
-                this.doodle.y,
-                "HEALTH!",
-                "#00ff00"
               );
             }
 
@@ -2143,7 +2220,7 @@
               this.drunkenMode = 0;
             }
 
-            this.obstaclewiseMotion();
+            this.obstaclewiseMotion(this.deltaTime);
 
             // Check for falling off screen
             if (this.doodle.y + this.doodle.height >= CANVAS_HEIGHT) {
@@ -2165,10 +2242,12 @@
             this.obstacleSplice();
             this.boosterSplice();
 
-            // Draw animating platforms
+            // Draw animating (breaking) platforms
             for (let i = this.animatingPlatformArray.length - 1; i >= 0; i--) {
-              this.animatingPlatformArray[i].drawPlatform();
-              if (this.animatingPlatformArray[i].index === 3) {
+              const platform = this.animatingPlatformArray[i];
+              const done = platform.updateBreaking(this.deltaTime);
+              platform.drawPlatform();
+              if (done) {
                 this.animatingPlatformArray.splice(i, 1);
               }
             }
@@ -2261,59 +2340,58 @@
 
         // Sprite loading
         SPRITES.background = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/background-wdwKITYrfY7Y0h1splD5vkfhioQ4Wz.png?blHJ"
+          "public/assets/background/game-background.png"
         );
         SPRITES.potHole = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Death%20hole-J0cofIXI1LB2wsR0Y3wDfCNPmWQkzE.png?k2be"
+          "public/assets/obstacles/death-hole.png"
         );
         SPRITES.player = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Player%20right-hUcpDTQFz3v1QDAA1qmA52QwUOidwJ.png?wELI"
+          "public/assets/character/sausagedad.png"
         );
         SPRITES.playerLeft = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Player-zOL9mY0pultTWCXI8IZogpkZdcIkOm.png?tW8S"
+          "public/assets/character/sausagedad.png"
         );
         SPRITES.playerUp = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Player%20right-hUcpDTQFz3v1QDAA1qmA52QwUOidwJ.png?wELI"
+          "public/assets/character/sausagedad.png"
         );
         SPRITES.uglyEnemy = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Monster%20%28%22blue%20monster%22%29-Rv57CO29AgEvtwroO2dqxS80SCGpnE.png?KfvA"
+          "public/assets/obstacles/walking-enemy1.png"
         );
         SPRITES.flyingEnemy = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Flying%20Monster-nruAUoi4oX8qYv5onaAd75kiP4JW8F.png?gLxv"
+          "public/assets/obstacles/flying-enemy-wing-up.png"
         );
         SPRITES.purpleEnemy = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/%22Purple%22%20Monster-dkXVbgybm1nAWdVjMtgRc43AUN627u.png?6FIW"
+          "public/assets/obstacles/walking-enemy1.png"
         );
         SPRITES.booster1 = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Dark%20trampoline-M9Hhjb75H00Q6e2NhsSfwsmu3oaWI1.png?7o74"
+          "public/assets/platforms/trampoline.png"
         );
-        // FIX: booster2 was loading a .wav file - using trampoline sprite as placeholder
         SPRITES.booster2 = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Dark%20trampoline-M9Hhjb75H00Q6e2NhsSfwsmu3oaWI1.png?7o74"
+          "public/assets/platforms/trampoline.png"
         );
         SPRITES.booster3 = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Just%20Jetpack-04u06eJSYEniO5LGfsDGLARq7n086H.png?Tjfi"
+          "public/assets/items/jetpack-item.png"
         );
         SPRITES.boosterJetpack = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Player%20with%20Jetpack-Q9H78SRWqJw8S6VGDCvTwMWHZkIUf0.png?sqkc"
+          "public/assets/character/jetpack-long-flame.png"
         );
         SPRITES.drinkingGlass = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Drunk%20Potion-cc0nkaA9qOaI8GwaIMnKOnnbtAmAhg.png?RNty"
+          "public/assets/items/drunk-potion.png"
         );
         SPRITES.healthReinstate = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Green%20potion-FNJqLKGqY86d50l5j8Gx1SaCIKAiQB.png?Yln0"
+          "public/assets/items/extra-life-potion.png"
         );
         SPRITES.greenPlatform = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Dark%20board-F09LRzvBktkSgdm395XROhju2HiIsX.png?8EhH"
+          "public/assets/platforms/wooden-platform.png"
         );
         SPRITES.movingPlatform = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/%22blue%20platform%22-3qhwWYpLoZs2Gbseq56HZJrfInNqKu.png?leqX"
+          "public/assets/platforms/blue-platform.png"
         );
         SPRITES.breakingPlatform = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Breaking%20platform-c2Ge7f845UoLmeQHmSpLR2TvSAktXA.png?kPoq"
+          "public/assets/platforms/breaking-platform.png"
         );
         SPRITES.yellowPlatform = loadSprite(
-          "https://lqy3lriiybxcejon.public.blob.vercel-storage.com/d0b815c7-f556-46cc-a896-d67fc30bca7a/Yellow%20Platform-WlQrakNoPCtaxI8AILCC9IECeyABrN.png?QEuN"
+          "public/assets/platforms/yellow-platform.png"
         );
 
         // Audio loading
@@ -2334,6 +2412,20 @@
         audioManager.createPool('monsterCrash', AUDIOS.monsterCrash?.src || '', 3);
         audioManager.createPool('trampoline', AUDIOS.trampSound?.src || '', 3);
         audioManager.createPool('jetpack', AUDIOS.jetPack?.src || '', 2);
+
+        // Create flipped player sprite for left-facing
+        if (SPRITES.player && SPRITES.player.complete) {
+          const canvas = document.createElement('canvas');
+          canvas.width = SPRITES.player.width;
+          canvas.height = SPRITES.player.height;
+          const ctx = canvas.getContext('2d');
+          ctx.translate(canvas.width, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(SPRITES.player, 0, 0);
+          const flippedImage = new Image();
+          flippedImage.src = canvas.toDataURL();
+          SPRITES.playerLeft = flippedImage;
+        }
 
         window.theGame = new GAME(element);
 
@@ -2389,11 +2481,6 @@
           }, 200);
         }
       };
-
-      // Resize handler
-      window.addEventListener("resize", () => {
-        location.reload();
-      });
 
       // Popup close
       window.addEventListener("load", () => {
