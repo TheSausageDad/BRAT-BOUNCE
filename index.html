@@ -3,28 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <title>BRAT BOUNCE</title>
-    <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@0.3.0/dist/index.min.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@latest/dist/index.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <style>
-      html,
-      body {
+      :root {
+        --sat: env(safe-area-inset-top, 0px);
+        --sab: env(safe-area-inset-bottom, 0px);
+        --sal: env(safe-area-inset-left, 0px);
+        --sar: env(safe-area-inset-right, 0px);
+      }
+
+      * {
         margin: 0;
         padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      html,
+      body {
+        position: fixed;
         overflow: hidden;
         background-color: #1a1a2e;
         width: 100%;
         height: 100%;
-      }
-      body {
+        height: 100dvh;
         touch-action: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
       }
 
       #body-container {
-        position: relative;
-        /* Width and height set by JavaScript resizeGame() */
+        position: fixed;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        overflow: hidden;
+        /* Width and height set by JavaScript */
       }
 
       canvas {
@@ -45,13 +60,9 @@
       }
 
       #startpage > img {
-        position: absolute;
-        top: 0;
-        left: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        z-index: 1;
+        object-fit: fill;
       }
 
       #startplay {
@@ -62,18 +73,14 @@
         transform: translateX(-50%);
         cursor: pointer;
         touch-action: manipulation;
+        width: 60%;
+        text-align: center;
       }
 
       #startplay img {
-        width: 70%;
+        width: 100%;
         max-width: 280px;
         height: auto;
-      }
-
-      * {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-user-select: none;
-        user-select: none;
       }
 
       button {
@@ -86,15 +93,9 @@
       <canvas id="body-canvas"></canvas>
 
       <div id="startpage">
-        <img
-          src="public/assets/background/main-menu.png"
-          loading="lazy"
-        />
+        <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/main-menu-L98hLTDlF3-FtOus6dD0Z2H5QPgFKDcZKFJChkQ7t.webp?aYpI" />
         <div id="startplay">
-          <img
-            src="public/assets/buttons/play-button.png"
-            loading="lazy"
-          />
+          <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/play-button-r33AtCDDY1-hwobctrYMCN2G3VFya5xuXhcyUPWIn.webp?ZU9Q" />
         </div>
       </div>
     </div>
@@ -562,6 +563,8 @@
       // ==========================================
       // BULLET CLASS
       // ==========================================
+      const SAUSAGE_SIZE = 25; // Size of the sausage projectile
+
       class Bullet {
         constructor(xCentre, yCentre, context) {
           this.xCentre = xCentre;
@@ -571,55 +574,74 @@
           this.active = true;
           this.trail = [];
           this.maxTrailLength = 5;
+          this.rotation = 0; // For spinning sausage
+          this.rotationSpeed = 0.3; // How fast it spins
         }
 
         bulletDraw(status) {
-          // Draw trail
-          for (let i = 0; i < this.trail.length; i++) {
-            const alpha = i / this.trail.length * 0.5;
-            const size = this.radius * (i / this.trail.length);
-            this.context.globalAlpha = alpha;
+          if (status === "isDoodle" && SPRITES.sausage) {
+            // Draw spinning sausage for player bullets
+            this.context.save();
+            const centerX = this.xCentre;
+            const centerY = this.yCentre;
+            this.context.translate(centerX, centerY);
+            this.context.rotate(this.rotation);
+            this.context.drawImage(
+              SPRITES.sausage,
+              -SAUSAGE_SIZE / 2,
+              -SAUSAGE_SIZE / 2,
+              SAUSAGE_SIZE,
+              SAUSAGE_SIZE
+            );
+            this.context.restore();
+          } else {
+            // Draw enemy bullet with glow (red)
+            // Draw trail
+            for (let i = 0; i < this.trail.length; i++) {
+              const alpha = i / this.trail.length * 0.5;
+              const size = this.radius * (i / this.trail.length);
+              this.context.globalAlpha = alpha;
+              this.context.beginPath();
+              this.context.arc(this.trail[i].x, this.trail[i].y, size, 0, 2 * Math.PI);
+              this.context.fillStyle = "red";
+              this.context.fill();
+            }
+            this.context.globalAlpha = 1;
+
+            // Draw bullet with glow
             this.context.beginPath();
-            this.context.arc(this.trail[i].x, this.trail[i].y, size, 0, 2 * Math.PI);
-            this.context.fillStyle = status === "isEnemy" ? "red" : "green";
-            this.context.fill();
-          }
-          this.context.globalAlpha = 1;
+            this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS, 0, 2 * Math.PI);
 
-          // Draw bullet with glow
-          this.context.beginPath();
-          this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS, 0, 2 * Math.PI);
-
-          // Glow effect
-          const gradient = this.context.createRadialGradient(
-            this.xCentre - this.radius, this.yCentre - this.radius, 0,
-            this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 2
-          );
-          if (status === "isEnemy") {
+            // Glow effect
+            const gradient = this.context.createRadialGradient(
+              this.xCentre - this.radius, this.yCentre - this.radius, 0,
+              this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 2
+            );
             gradient.addColorStop(0, "rgba(255, 100, 100, 1)");
             gradient.addColorStop(0.5, "rgba(255, 0, 0, 0.8)");
             gradient.addColorStop(1, "rgba(255, 0, 0, 0)");
-          } else {
-            gradient.addColorStop(0, "rgba(100, 255, 100, 1)");
-            gradient.addColorStop(0.5, "rgba(0, 255, 0, 0.8)");
-            gradient.addColorStop(1, "rgba(0, 255, 0, 0)");
-          }
-          this.context.fillStyle = gradient;
-          this.context.fill();
+            this.context.fillStyle = gradient;
+            this.context.fill();
 
-          // Core
-          this.context.beginPath();
-          this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 0.6, 0, 2 * Math.PI);
-          this.context.fillStyle = status === "isEnemy" ? "#ff6666" : "#66ff66";
-          this.context.fill();
+            // Core
+            this.context.beginPath();
+            this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 0.6, 0, 2 * Math.PI);
+            this.context.fillStyle = "#ff6666";
+            this.context.fill();
+          }
         }
 
         bulletMove(theta, status) {
-          // Store trail position
-          this.trail.push({ x: this.xCentre - this.radius, y: this.yCentre - this.radius });
-          if (this.trail.length > this.maxTrailLength) {
-            this.trail.shift();
+          // Store trail position for enemy bullets
+          if (status === "isEnemy") {
+            this.trail.push({ x: this.xCentre - this.radius, y: this.yCentre - this.radius });
+            if (this.trail.length > this.maxTrailLength) {
+              this.trail.shift();
+            }
           }
+
+          // Update rotation for spinning sausage
+          this.rotation += this.rotationSpeed;
 
           if (status === "isDoodle") {
             if (this.yCentre + BULLET_RADIUS > 0) {
@@ -798,17 +820,17 @@
               }
 
               if (obs.type === 5) {
-                window.FarcadeSDK?.singlePlayer?.actions.hapticFeedback?.();
+                window.FarcadeSDK?.hapticFeedback?.();
                 this.isJetpacking = true;
                 setTimeout(() => {
                   this.isJetpacking = false;
                 }, JETPACK_DURATION);
                 return 1;
               } else if (obs.type === 6) {
-                window.FarcadeSDK?.singlePlayer?.actions.hapticFeedback?.();
+                window.FarcadeSDK?.hapticFeedback?.();
                 return 2;
               } else {
-                window.FarcadeSDK?.singlePlayer?.actions.hapticFeedback?.();
+                window.FarcadeSDK?.hapticFeedback?.();
                 return 0;
               }
             }
@@ -839,6 +861,7 @@
                 this.land();
                 particleSystem.landingDust(this.x + this.width / 2, this.y + this.height);
                 audioManager.play('jump', 0.6);
+                window.FarcadeSDK?.hapticFeedback?.();
 
                 // Platform bounce animation
                 platArray[i].bounce();
@@ -925,10 +948,11 @@
       // OBSTACLE CLASS
       // ==========================================
       class Obstacle {
-        constructor(obstacle, x, y, context, type) {
+        constructor(obstacle, x, y, context, type, altSprite = null) {
           this.x = x;
           this.y = y;
           this.obstacle = obstacle;
+          this.altSprite = altSprite;
           this.type = type;
           this.context = context;
 
@@ -965,6 +989,23 @@
           this.bobOffset = Math.random() * Math.PI * 2;
           this.scaleX = 1;
           this.scaleY = 1;
+
+          // Wing flapping animation for flying enemies (type 4)
+          this.wingFlapTimer = 0;
+          this.wingFlapSpeed = 8; // Frames between wing changes (lower = faster)
+          this.wingUp = true;
+
+          // Per-enemy shooting system (for types 2, 3, 4 - enemies that shoot)
+          this.canShoot = this.type === 2 || this.type === 3 || this.type === 4;
+          this.inRange = false;
+          this.warmupTimer = 0;
+          this.warmupTime = 60; // Frames before enemy can first shoot (1 sec at 60fps)
+          this.isWarmedUp = false;
+          this.isCharging = false;
+          this.chargeTimer = 0;
+          this.chargeTime = 30; // Frames of warning before shot (0.5 sec)
+          this.shootCooldown = 0;
+          this.shootInterval = 90 + Math.random() * 30; // 1.5-2 sec between shots (randomized)
         }
 
         drawObstacle() {
@@ -979,12 +1020,93 @@
           this.context.scale(this.scaleX, this.scaleY);
           this.context.translate(-centerX, -centerY);
 
-          this.context.drawImage(this.obstacle, this.x, this.y + bobY, this.width, this.height);
+          // Wing flapping animation for flying enemies (type 4)
+          let spriteToDraw = this.obstacle;
+          if (this.type === 4 && this.altSprite) {
+            this.wingFlapTimer++;
+            if (this.wingFlapTimer >= this.wingFlapSpeed) {
+              this.wingFlapTimer = 0;
+              this.wingUp = !this.wingUp;
+            }
+            spriteToDraw = this.wingUp ? this.obstacle : this.altSprite;
+          }
+
+          // Draw the sprite
+          this.context.drawImage(spriteToDraw, this.x, this.y + bobY, this.width, this.height);
+
+          // Visual warning when charging to shoot
+          if (this.isCharging && this.canShoot) {
+            // Pulsing red glow effect
+            const pulse = 0.3 + Math.sin(this.chargeTimer * 0.4) * 0.3;
+            this.context.fillStyle = `rgba(255, 0, 0, ${pulse})`;
+            this.context.beginPath();
+            this.context.arc(centerX, centerY + bobY, this.width * 0.6, 0, Math.PI * 2);
+            this.context.fill();
+
+            // Exclamation mark warning
+            this.context.fillStyle = '#ff0000';
+            this.context.font = 'bold 20px Arial';
+            this.context.textAlign = 'center';
+            this.context.fillText('!', centerX, this.y + bobY - 5);
+          }
+
           this.context.restore();
         }
 
         moveDownObstacle(value) {
           this.y += -value;
+        }
+
+        // Update shooting state - returns true if ready to fire
+        updateShooting(playerY, deltaTime = 1) {
+          if (!this.canShoot) return false;
+
+          // Check if enemy is in shooting range (50-350 pixels above player)
+          const distance = playerY - this.y - this.height;
+          const wasInRange = this.inRange;
+          this.inRange = distance >= 50 && distance < 350;
+
+          // Reset warmup if enemy leaves range
+          if (!this.inRange) {
+            this.isWarmedUp = false;
+            this.warmupTimer = 0;
+            this.isCharging = false;
+            this.chargeTimer = 0;
+            return false;
+          }
+
+          // Handle warmup (delay before first shot when entering range)
+          if (!this.isWarmedUp) {
+            this.warmupTimer += deltaTime;
+            if (this.warmupTimer >= this.warmupTime) {
+              this.isWarmedUp = true;
+            }
+            return false;
+          }
+
+          // Handle cooldown between shots
+          if (this.shootCooldown > 0) {
+            this.shootCooldown -= deltaTime;
+            return false;
+          }
+
+          // Start charging if not already
+          if (!this.isCharging) {
+            this.isCharging = true;
+            this.chargeTimer = 0;
+          }
+
+          // Handle charge-up animation
+          this.chargeTimer += deltaTime;
+          if (this.chargeTimer >= this.chargeTime) {
+            // Ready to fire!
+            this.isCharging = false;
+            this.chargeTimer = 0;
+            this.shootCooldown = this.shootInterval;
+            return true;
+          }
+
+          return false;
         }
 
         individualMotion(deltaTime = 1) {
@@ -1264,36 +1386,50 @@
       var startPage = document.getElementById("startpage");
       var playOn = document.getElementById("startplay");
 
-      // Responsive sizing function
       function resizeGame() {
         const container = document.getElementById('body-container');
-        const vw = window.innerWidth;
-        const vh = window.innerHeight;
 
-        // Game aspect ratio is 2:3 (400x600)
-        const gameRatio = 2 / 3;
+        // Use Visual Viewport API - gives exact visible area on iOS Safari
+        const vv = window.visualViewport;
+        const vw = vv ? vv.width : window.innerWidth;
+        const vh = vv ? vv.height : window.innerHeight;
 
+        const gameRatio = CANVAS_WIDTH / CANVAS_HEIGHT; // 400/850 = 0.47
         let width, height;
 
-        // Calculate size that fits viewport while maintaining aspect ratio
+        // Fit game within viewport while maintaining aspect ratio
         if (vw / vh < gameRatio) {
-          // Viewport is taller than game ratio - fit to width
+          // Viewport is taller/narrower than game - fit to width
           width = vw;
           height = vw / gameRatio;
         } else {
-          // Viewport is wider than game ratio - fit to height
+          // Viewport is wider than game - fit to height
           height = vh;
           width = vh * gameRatio;
         }
 
-        // Apply dimensions
-        container.style.width = width + 'px';
-        container.style.height = height + 'px';
+        container.style.width = Math.floor(width) + 'px';
+        container.style.height = Math.floor(height) + 'px';
       }
 
-      // Call resize on load and window resize
+      // Debounce to prevent excessive resize calls
+      let resizeTimeout;
+      function debouncedResize() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(resizeGame, 100);
+      }
+
+      // Initial sizing
       resizeGame();
-      window.addEventListener('resize', resizeGame);
+
+      // Handle all resize scenarios
+      window.addEventListener('resize', debouncedResize);
+      window.addEventListener('orientationchange', () => setTimeout(resizeGame, 150));
+
+      // Visual Viewport API for iOS Safari (handles toolbar changes)
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', debouncedResize);
+      }
 
       class GAME {
         constructor(element) {
@@ -1311,7 +1447,8 @@
           this.playerLeft = SPRITES.playerLeft;
           this.playerUp = SPRITES.playerUp;
           this.uglyEnemy = SPRITES.uglyEnemy;
-          this.flyingEnemy = SPRITES.flyingEnemy;
+          this.flyingEnemyWingUp = SPRITES.flyingEnemyWingUp;
+          this.flyingEnemyWingDown = SPRITES.flyingEnemyWingDown;
           this.purpleEnemy = SPRITES.purpleEnemy;
           this.booster1 = SPRITES.booster1;
           this.booster2 = SPRITES.booster2;
@@ -1398,10 +1535,15 @@
             this.gameLoop();
           };
 
-          // Use pointerdown - works for both touch and mouse
-          playOn.addEventListener('pointerdown', (e) => {
+          // Touch for mobile - touchstart works better on iOS than pointerdown
+          playOn.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            e.stopPropagation();
+            startGame();
+          }, { passive: false });
+
+          // Click for desktop
+          playOn.addEventListener('click', (e) => {
+            e.preventDefault();
             startGame();
           });
         }
@@ -1593,7 +1735,7 @@
             case 1: obstacle = new Obstacle(this.potHole, x, y, this.context, 1); break;
             case 2: obstacle = new Obstacle(this.uglyEnemy, x, y, this.context, 2); break;
             case 3: obstacle = new Obstacle(this.purpleEnemy, x, y, this.context, 3); break;
-            case 4: obstacle = new Obstacle(this.flyingEnemy, x, y, this.context, 4); break;
+            case 4: obstacle = new Obstacle(this.flyingEnemyWingUp, x, y, this.context, 4, this.flyingEnemyWingDown); break;
             case 5: obstacle = new Obstacle(this.drinkingGlass, x, y, this.context, 5); break;
             case 6: obstacle = new Obstacle(this.healthReinstate, x, y, this.context, 6); break;
           }
@@ -1854,18 +1996,20 @@
           this.context.fillText(`${this.score + this.bonusScore}`, 20, 38);
 
           // Health hearts
-          this.context.textAlign = "right";
           for (let i = 0; i < INITIAL_CHANCES; i++) {
-            const heartX = CANVAS_WIDTH - 30 - i * 35;
+            const heartX = CANVAS_WIDTH - 45 - i * 30;
+            const heartY = 15;
+            const heartSize = 25;
             if (i < this.chance) {
-              this.context.fillStyle = "#ff4444";
-              this.context.font = "24px Arial";
-              this.context.fillText("❤️", heartX, 38);
+              // Full heart
+              this.context.globalAlpha = 1;
+              this.context.drawImage(SPRITES.heart, heartX, heartY, heartSize, heartSize);
             } else {
-              this.context.fillStyle = "#444444";
-              this.context.font = "24px Arial";
-              this.context.fillText("🖤", heartX, 38);
+              // Empty heart (dimmed)
+              this.context.globalAlpha = 0.3;
+              this.context.drawImage(SPRITES.heart, heartX, heartY, heartSize, heartSize);
             }
+            this.context.globalAlpha = 1;
           }
 
           // Power-up timers
@@ -2070,23 +2214,26 @@
               obstacle.drawObstacle();
             }
 
-            // Enemy shooting logic
-            if (this.obstacleArray.length !== 0) {
-              if (this.loopCount === 0) {
-                this.obstacleDoodlePath();
-                this.startTime = new Date();
-                this.loopCount = 1;
-              } else {
-                this.currentTime = new Date();
-                const elapsed = this.currentTime - this.startTime;
-                const shootInterval = this.score <= 250 ? 1000 : 700;
-                if (elapsed >= shootInterval && elapsed <= shootInterval + 50) {
-                  this.obstacleDoodlePath();
-                  this.startTime = new Date();
-                }
+            // Per-enemy shooting logic
+            for (const obs of this.obstacleArray) {
+              // Update shooting state and check if ready to fire
+              const shouldFire = obs.updateShooting(this.doodle.y, this.deltaTime);
+
+              if (shouldFire) {
+                // Calculate angle to player
+                const theta = Math.atan2(
+                  this.doodle.y - (obs.y + obs.height),
+                  this.doodle.x + this.doodle.width / 2 - obs.x - obs.width / 2
+                );
+
+                // Create bullet
+                const bullet = this.enemyBulletPool.get(
+                  obs.x + obs.width / 2,
+                  obs.y + obs.height
+                );
+                this.enemyBulletArray.push(bullet);
+                this.theta.push(theta);
               }
-            } else {
-              this.loopCount = 0;
             }
 
             // Update and draw enemy bullets
@@ -2338,60 +2485,69 @@
           return audio;
         }
 
-        // Sprite loading
+        // Sprite loading - Remix hosted URLs
         SPRITES.background = loadSprite(
-          "public/assets/background/game-background.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/game-background-klSnuTfvvr-BwbSrwVCyq80lufWgMiuog4R2eOH0R.webp?Wv4h"
         );
         SPRITES.potHole = loadSprite(
-          "public/assets/obstacles/death-hole.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/death-hole-6bveUOXA0S-6XU9ZgZfVQ0q4FgOtxUVFuSArZRRFk.webp?EqCL"
         );
         SPRITES.player = loadSprite(
-          "public/assets/character/sausagedad.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/sausagedad-mJIldW4Yz7-zdyXKeZU7yIjV3AShBJ46hRHCOBWCL.webp?bVbH"
         );
         SPRITES.playerLeft = loadSprite(
-          "public/assets/character/sausagedad.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/sausagedad-mJIldW4Yz7-zdyXKeZU7yIjV3AShBJ46hRHCOBWCL.webp?bVbH"
         );
         SPRITES.playerUp = loadSprite(
-          "public/assets/character/sausagedad.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/sausagedad-throwing-VybykGaenZ-IC1RjOHFuEHfuy26nmqbXpt1kCFfyZ.webp?INsq"
         );
         SPRITES.uglyEnemy = loadSprite(
-          "public/assets/obstacles/walking-enemy1.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/walking-enemy1-ta3wrlps1u-PsRfI9ErSZPuvHm6fr8qyqUt39CZRP.webp?T5ut"
         );
-        SPRITES.flyingEnemy = loadSprite(
-          "public/assets/obstacles/flying-enemy-wing-up.png"
+        SPRITES.flyingEnemyWingUp = loadSprite(
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/flying-enemy-wing-up-BH8FZG0vZ3-suNes58LyqzOOSJ2G32arbr1daXVcv.webp?CUw7"
+        );
+        SPRITES.flyingEnemyWingDown = loadSprite(
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/flying-enemy-wing-down-TzoMdv74oQ-T3GWFGLOvmcvQJxlFxBMVQQ1WQGhFF.webp?P2oo"
         );
         SPRITES.purpleEnemy = loadSprite(
-          "public/assets/obstacles/walking-enemy1.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/walking-enemy1-ta3wrlps1u-PsRfI9ErSZPuvHm6fr8qyqUt39CZRP.webp?T5ut"
         );
         SPRITES.booster1 = loadSprite(
-          "public/assets/platforms/trampoline.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/trampoline-gkqKvT3M41-MRmDT1iOoK0VW1fLCtoFkouIhy3SP5.webp?EQyX"
         );
         SPRITES.booster2 = loadSprite(
-          "public/assets/platforms/trampoline.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/trampoline-gkqKvT3M41-MRmDT1iOoK0VW1fLCtoFkouIhy3SP5.webp?EQyX"
         );
         SPRITES.booster3 = loadSprite(
-          "public/assets/items/jetpack-item.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/jetpack-item-UY19kfOVli-EdI0P3TQxQM4NABwiNWQRh5IOuprbY.webp?PMN7"
         );
         SPRITES.boosterJetpack = loadSprite(
-          "public/assets/character/jetpack-long-flame.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/jetpack-long-flame-oMJwID6wos-pv4lc3tF80DJIlAtkpEUyWyMqQsmMO.webp?5h0H"
         );
         SPRITES.drinkingGlass = loadSprite(
-          "public/assets/items/drunk-potion.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/drunk-potion-c43BZjt8kG-saGzoLZ6M7UnX6YpdHG8DIXEE8Sjzy.webp?sfWo"
         );
         SPRITES.healthReinstate = loadSprite(
-          "public/assets/items/extra-life-potion.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/extra-life-potion-r90yf8dIQ1-8w2Tp4hTzj6ZIvHhmn7FwLl4TKrSu4.webp?i2QR"
         );
         SPRITES.greenPlatform = loadSprite(
-          "public/assets/platforms/wooden-platform.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/wooden-platform-hCNablaEqD-xWDqXz9JXGiKuJOVDL6ohjfAdMqjjN.webp?AeLf"
         );
         SPRITES.movingPlatform = loadSprite(
-          "public/assets/platforms/blue-platform.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/blue-platform-q1tyo5y3Jq-54Dod8uCN4c9sUdEQiEEKhVuw9cEs2.webp?4pGj"
         );
         SPRITES.breakingPlatform = loadSprite(
-          "public/assets/platforms/breaking-platform.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/breaking-platform-ZdS5Dccrnv-rYydKL6sbQc9BbmqksQBf2MNaPh1HZ.webp?nY9Q"
         );
         SPRITES.yellowPlatform = loadSprite(
-          "public/assets/platforms/yellow-platform.png"
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/yellow-platform-eO6XTQgTEH-lWFbhWMflnMMDCZlZ14ISf9xEVUMLp.webp?7Lcu"
+        );
+        SPRITES.heart = loadSprite(
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/heart-3FgBRfAaJO-wjhUM8WPL0p3RFtyoWaobQkq7cbZjs.webp?UEss"
+        );
+        SPRITES.sausage = loadSprite(
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/sausagedads-sausage-Uv1fXNY29J-JLLP0ZMpsktgFoTfY8sdOsj5i7zHnZ.webp?uC21"
         );
 
         // Audio loading
@@ -2437,13 +2593,13 @@
         });
       });
 
-      window.FarcadeSDK?.on?.("play_again", () => {
+      window.FarcadeSDK?.onPlayAgain?.(() => {
         if (window.theGame?.restartGame) {
           window.theGame.restartGame();
         }
       });
 
-      window.FarcadeSDK?.on?.("toggle_mute", (data) => {
+      window.FarcadeSDK?.onToggleMute?.((data) => {
         const isMuted = data?.isMuted;
         audioManager.setMuted(isMuted);
         for (let key in AUDIOS) {
