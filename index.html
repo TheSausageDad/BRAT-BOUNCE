@@ -644,9 +644,7 @@
           this.rotation += this.rotationSpeed;
 
           if (status === "isDoodle") {
-            if (this.yCentre + BULLET_RADIUS > 0) {
-              this.yCentre -= BULLET_SPEED;
-            }
+            this.yCentre -= BULLET_SPEED;
           }
           if (status === "isEnemy") {
             this.yCentre += ENEMY_BULLET_SPEED * Math.sin(theta);
@@ -800,7 +798,7 @@
           this.wasFlying = wasFlying;
         }
 
-        obstacleCollision(obsArray) {
+        obstacleCollision(obsArray, currentLives, maxLives) {
           for (let i = 0; i < obsArray.length; i++) {
             let obs = obsArray[i];
 
@@ -816,7 +814,7 @@
               this.y + this.height > obsTop
             ) {
               if (this.isJetpacking || this.invincible) {
-                return -1;
+                return { type: -1, index: -1 };
               }
 
               if (obs.type === 5) {
@@ -825,21 +823,27 @@
                 setTimeout(() => {
                   this.isJetpacking = false;
                 }, JETPACK_DURATION);
-                return 1;
+                return { type: 1, index: i };
               } else if (obs.type === 6) {
-                window.FarcadeSDK?.hapticFeedback?.();
-                return 2;
+                // Only collect health potion if not at max lives
+                if (currentLives < maxLives) {
+                  window.FarcadeSDK?.hapticFeedback?.();
+                  return { type: 2, index: i };
+                }
+                // At max lives - ignore the potion
+                return { type: -1, index: -1 };
               } else {
                 window.FarcadeSDK?.hapticFeedback?.();
-                return 0;
+                return { type: 0, index: i };
               }
             }
           }
-          return -1;
+          return { type: -1, index: -1 };
         }
 
         jumpFromPlatform(particleSystem, platArray, boosterArray) {
           let doodleOffset = 12;
+          let landed = false;
           for (var i = 0; i < platArray.length; i++) {
             if (
               this.y + this.height >= platArray[i].yPosition &&
@@ -856,6 +860,7 @@
                   this.offset = -this.jumpRate;
                 }
                 this.collisionMode = 1;
+                landed = true;
 
                 // Visual feedback
                 this.land();
@@ -941,6 +946,7 @@
               }
             }
           }
+          return landed;
         }
       }
 
@@ -976,8 +982,8 @@
             // Enemies (square images) - smaller hitbox for fairness
             this.width = 55;
             this.height = 55;
-            this.hitboxOffsetX = 12;
-            this.hitboxOffsetY = 12;
+            this.hitboxOffsetX = 18;
+            this.hitboxOffsetY = 18;
             this.hitboxWidth = this.width - this.hitboxOffsetX * 2;
             this.hitboxHeight = this.height - this.hitboxOffsetY * 2;
           }
@@ -1483,6 +1489,7 @@
           this.chance = INITIAL_CHANCES;
           this.status = "isPlaying";
           this.drunkenMode = 0;
+          this.drunkMovementActive = false; // Keeps drunk movement until landing
 
           // Timing
           this.lastTime = 0;
@@ -1563,13 +1570,22 @@
           if (this.eventsBound) return;
           this.eventsBound = true;
 
+          // Track which direction keys are held and their press order
+          this.keysHeld = { left: false, right: false };
+          this.lastDirectionPressed = null; // 'left' or 'right'
+
           document.onkeydown = (event) => {
+            const isDrunk = this.drunkenMode || this.drunkMovementActive;
             if (event.code === "KeyA" || event.code === "ArrowLeft") {
-              this.doodleXchange = this.drunkenMode ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
+              this.keysHeld.left = true;
+              this.lastDirectionPressed = 'left';
+              this.doodleXchange = isDrunk ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
               this.leftRight = 1;
             }
             if (event.code === "KeyD" || event.code === "ArrowRight") {
-              this.doodleXchange = this.drunkenMode ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
+              this.keysHeld.right = true;
+              this.lastDirectionPressed = 'right';
+              this.doodleXchange = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
               this.leftRight = 0;
             }
             if (event.code === "Space") {
@@ -1582,16 +1598,30 @@
           };
 
           document.onkeyup = (event) => {
-            if (event.code === "KeyA" || event.code === "ArrowLeft" || event.code === "Space") {
-              this.leftRight = 0;
-            }
-            if (event.code === "Space") {
-              this.spacePressed = 0;
-            }
-            if (event.code === "KeyA" || event.code === "KeyD" || event.code === "ArrowLeft" || event.code === "ArrowRight") {
-              if (!this.drunkenMode) {
+            const isDrunk = this.drunkenMode || this.drunkMovementActive;
+            if (event.code === "KeyA" || event.code === "ArrowLeft") {
+              this.keysHeld.left = false;
+              // If right is still held, switch to right
+              if (this.keysHeld.right) {
+                this.doodleXchange = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
+                this.leftRight = 0;
+              } else if (!isDrunk) {
                 this.doodleXchange = 0;
               }
+            }
+            if (event.code === "KeyD" || event.code === "ArrowRight") {
+              this.keysHeld.right = false;
+              // If left is still held, switch to left
+              if (this.keysHeld.left) {
+                this.doodleXchange = isDrunk ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
+                this.leftRight = 1;
+              } else if (!isDrunk) {
+                this.doodleXchange = 0;
+              }
+            }
+            if (event.code === "Space") {
+              this.leftRight = 0;
+              this.spacePressed = 0;
             }
           };
 
@@ -1609,6 +1639,7 @@
             event.preventDefault();
             const touch = event.touches[0];
             const rect = this.canvas.getBoundingClientRect();
+            const isDrunk = this.drunkenMode || this.drunkMovementActive;
 
             // Convert from CSS pixels to logical game coordinates
             const scaleX = CANVAS_WIDTH / rect.width;
@@ -1617,13 +1648,13 @@
 
             // Move toward finger position
             if (touchX < doodleCenterX - 20) {
-              this.doodleXchange = this.drunkenMode ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
+              this.doodleXchange = isDrunk ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
               this.leftRight = 1;
             } else if (touchX > doodleCenterX + 20) {
-              this.doodleXchange = this.drunkenMode ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
+              this.doodleXchange = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
               this.leftRight = 0;
             } else {
-              if (!this.drunkenMode) this.doodleXchange = 0;
+              if (!isDrunk) this.doodleXchange = 0;
             }
           };
 
@@ -1640,7 +1671,7 @@
 
           this.canvas.addEventListener('touchend', () => {
             this.touchActive = false;
-            if (!this.drunkenMode) {
+            if (!(this.drunkenMode || this.drunkMovementActive)) {
               this.doodleXchange = 0;
             }
           });
@@ -1744,7 +1775,16 @@
 
         newBooster() {
           this.boosterSelect();
-          const x = getRandom(0, CANVAS_WIDTH - 50);
+
+          // Get width based on booster type to ensure it spawns within bounds
+          let boosterWidth;
+          switch (this.boosterType) {
+            case 1: boosterWidth = 85; break;  // Trampoline
+            case 2: boosterWidth = 60; break;  // Spring
+            default: boosterWidth = 50; break; // Jetpack/other
+          }
+
+          const x = getRandom(0, CANVAS_WIDTH - boosterWidth);
           const y = this.platformArray[0].yPosition - getRandom(60, 75);
 
           let booster;
@@ -2012,30 +2052,42 @@
             this.context.globalAlpha = 1;
           }
 
-          // Power-up timers
-          let timerY = 75;
-
-          if (this.doodle.isJetpacking) {
-            this.context.fillStyle = "rgba(255, 150, 0, 0.8)";
-            this.context.fillRect(10, timerY, 100, 20);
-            this.context.fillStyle = "#ff6600";
-            this.context.fillRect(10, timerY, 100 * (this.jetpackTimeRemaining / JETPACK_DURATION), 20);
-            this.context.fillStyle = "white";
-            this.context.font = "12px Arial";
-            this.context.textAlign = "left";
-            this.context.fillText("JETPACK", 15, timerY + 14);
-            timerY += 25;
-          }
-
+          // Drunk mode timer
           if (this.drunkenMode) {
-            this.context.fillStyle = "rgba(150, 0, 255, 0.8)";
-            this.context.fillRect(10, timerY, 100, 20);
-            this.context.fillStyle = "#9900ff";
-            this.context.fillRect(10, timerY, 100 * (this.drunkTimeRemaining / DRUNK_DURATION), 20);
-            this.context.fillStyle = "white";
-            this.context.font = "12px Arial";
-            this.context.textAlign = "left";
-            this.context.fillText("DRUNK", 15, timerY + 14);
+            const timerY = 75;
+            const barWidth = 120;
+            const barHeight = 24;
+            const progress = this.drunkTimeRemaining / DRUNK_DURATION;
+
+            // Background bar with rounded corners
+            this.context.fillStyle = "rgba(0, 0, 0, 0.5)";
+            this.context.beginPath();
+            this.context.roundRect(10, timerY, barWidth, barHeight, 6);
+            this.context.fill();
+
+            // Progress fill with gradient
+            const gradient = this.context.createLinearGradient(10, timerY, 10 + barWidth, timerY);
+            gradient.addColorStop(0, "#b8ff00");
+            gradient.addColorStop(1, "#8bc700");
+            this.context.fillStyle = gradient;
+            this.context.beginPath();
+            this.context.roundRect(10, timerY, barWidth * progress, barHeight, 6);
+            this.context.fill();
+
+            // Border
+            this.context.strokeStyle = "rgba(255, 255, 255, 0.3)";
+            this.context.lineWidth = 1;
+            this.context.beginPath();
+            this.context.roundRect(10, timerY, barWidth, barHeight, 6);
+            this.context.stroke();
+
+            // Text with shadow
+            this.context.fillStyle = "rgba(0, 0, 0, 0.5)";
+            this.context.font = "bold 13px 'Arial Black', sans-serif";
+            this.context.textAlign = "center";
+            this.context.fillText("DRUNK", 10 + barWidth / 2 + 1, timerY + 17);
+            this.context.fillStyle = "#fff";
+            this.context.fillText("DRUNK", 10 + barWidth / 2, timerY + 16);
           }
 
           // Combo display
@@ -2104,6 +2156,7 @@
           this.loopCount = 0;
           this.chance = INITIAL_CHANCES;
           this.drunkenMode = 0;
+          this.drunkMovementActive = false;
           this.status = "isPlaying";
 
           this.setUp();
@@ -2163,7 +2216,10 @@
 
             // Update doodle
             this.doodle.doodleJumpSpeed(this.score);
-            this.doodle.jumpFromPlatform(this.particleSystem, this.platformArray, this.boosterArray);
+            const landed = this.doodle.jumpFromPlatform(this.particleSystem, this.platformArray, this.boosterArray);
+            if (landed && this.drunkMovementActive) {
+              this.drunkMovementActive = false;
+            }
             this.doodle.moveDoodle(this.doodleXchange, this.deltaTime);
             this.doodle.updateVisuals(this.deltaTime);
             this.doodleChecker();
@@ -2336,13 +2392,31 @@
             }
 
             // Handle obstacle collision
-            const value = this.doodle.obstacleCollision(this.obstacleArray);
-            if (value === 0) {
+            const collision = this.doodle.obstacleCollision(this.obstacleArray, this.chance, INITIAL_CHANCES);
+            if (collision.type === 0) {
+              // Hit an enemy - lose a life
               this.screenShake.trigger(15);
-              this.gameOver();
+              this.particleSystem.emit(
+                this.doodle.x + this.doodle.width / 2,
+                this.doodle.y + this.doodle.height / 2,
+                15,
+                { angle: 0, spread: Math.PI * 2, speed: 4, colors: ['#ff0000', '#ff6666', '#ffaaaa'], size: 5, life: 35 }
+              );
+
+              this.chance--;
+              this.doodle.makeInvincible();
+              this.comboSystem.reset();
+
+              // Remove the enemy
+              this.obstacleArray.splice(collision.index, 1);
+
+              if (this.chance <= 0) {
+                this.gameOver();
+              }
             }
-            if (value === 1) {
-              // Jetpack power-up
+            if (collision.type === 1) {
+              // Jetpack power-up - remove from map
+              this.obstacleArray.splice(collision.index, 1);
               this.drunkStart = new Date();
               this.drunkenMode = 1;
               this.drunkTimeRemaining = DRUNK_DURATION;
@@ -2350,11 +2424,10 @@
                 this.doodle.x + this.doodle.width / 2,
                 this.doodle.y + this.doodle.height / 2
               );
-            } else if (value === 2) {
-              // Add 1 life (up to max 3)
-              if (this.chance < INITIAL_CHANCES) {
-                this.chance++;
-              }
+            } else if (collision.type === 2) {
+              // Health potion - remove from map and add 1 life
+              this.obstacleArray.splice(collision.index, 1);
+              this.chance++;
               this.particleSystem.collectPowerup(
                 this.doodle.x + this.doodle.width / 2,
                 this.doodle.y + this.doodle.height / 2
@@ -2363,8 +2436,9 @@
 
             // Drunk mode timer
             this.drunkNow = new Date();
-            if (this.drunkNow - this.drunkStart >= DRUNK_DURATION) {
+            if (this.drunkNow - this.drunkStart >= DRUNK_DURATION && this.drunkenMode) {
               this.drunkenMode = 0;
+              this.drunkMovementActive = true; // Keep movement until landing
             }
 
             this.obstaclewiseMotion(this.deltaTime);
@@ -2409,15 +2483,6 @@
             // Draw UI (after screen shake reset so it's stable)
             this.drawUI();
 
-            // Drunk mode indicator
-            if (this.drunkenMode) {
-              this.context.save();
-              this.context.font = "bold 18px Arial";
-              this.context.textAlign = "center";
-              this.context.fillStyle = "#9900ff";
-              this.context.fillText("🍺 DRUNK MODE 🍺", CANVAS_WIDTH / 2, 110);
-              this.context.restore();
-            }
           }
         }
       }
@@ -2570,6 +2635,7 @@
         audioManager.createPool('jetpack', AUDIOS.jetPack?.src || '', 2);
 
         // Create flipped player sprite for left-facing
+        // Use canvas directly as image source (avoids tainted canvas toDataURL error)
         if (SPRITES.player && SPRITES.player.complete) {
           const canvas = document.createElement('canvas');
           canvas.width = SPRITES.player.width;
@@ -2578,9 +2644,7 @@
           ctx.translate(canvas.width, 0);
           ctx.scale(-1, 1);
           ctx.drawImage(SPRITES.player, 0, 0);
-          const flippedImage = new Image();
-          flippedImage.src = canvas.toDataURL();
-          SPRITES.playerLeft = flippedImage;
+          SPRITES.playerLeft = canvas;
         }
 
         window.theGame = new GAME(element);
@@ -2609,34 +2673,37 @@
         }
       });
 
-      // Touch controls
+      // Touch controls (only if buttons exist)
       const leftBtn = document.getElementById("left-btn");
       const rightBtn = document.getElementById("right-btn");
-
-      leftBtn.ontouchstart = () => {
-        window.theGame.doodleXchange = -PLAYER_MOVE_SPEED;
-        window.theGame.leftRight = 1;
-      };
-      rightBtn.ontouchstart = () => {
-        window.theGame.doodleXchange = PLAYER_MOVE_SPEED;
-        window.theGame.leftRight = 0;
-      };
-      leftBtn.ontouchend = rightBtn.ontouchend = () => {
-        window.theGame.doodleXchange = 0;
-      };
-
-      // Shoot button
       const shootBtn = document.getElementById("shoot-btn");
-      shootBtn.ontouchstart = () => {
-        if (window.theGame.spacePressed === 0) {
-          window.theGame.leftRight = 2;
-          window.theGame.shoot();
-          window.theGame.spacePressed = 1;
-          setTimeout(() => {
-            window.theGame.spacePressed = 0;
-          }, 200);
-        }
-      };
+
+      if (leftBtn && rightBtn) {
+        leftBtn.ontouchstart = () => {
+          window.theGame.doodleXchange = -PLAYER_MOVE_SPEED;
+          window.theGame.leftRight = 1;
+        };
+        rightBtn.ontouchstart = () => {
+          window.theGame.doodleXchange = PLAYER_MOVE_SPEED;
+          window.theGame.leftRight = 0;
+        };
+        leftBtn.ontouchend = rightBtn.ontouchend = () => {
+          window.theGame.doodleXchange = 0;
+        };
+      }
+
+      if (shootBtn) {
+        shootBtn.ontouchstart = () => {
+          if (window.theGame.spacePressed === 0) {
+            window.theGame.leftRight = 2;
+            window.theGame.shoot();
+            window.theGame.spacePressed = 1;
+            setTimeout(() => {
+              window.theGame.spacePressed = 0;
+            }, 200);
+          }
+        };
+      }
 
       // Popup close
       window.addEventListener("load", () => {
