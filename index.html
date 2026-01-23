@@ -57,17 +57,20 @@
         height: 100%;
         z-index: 100;
         touch-action: manipulation;
+        pointer-events: auto;
+        cursor: pointer;
       }
 
       #startpage > img {
         width: 100%;
         height: 100%;
         object-fit: fill;
+        pointer-events: none;
       }
 
       #startplay {
         position: absolute;
-        z-index: 10;
+        z-index: 200;
         top: 70%;
         left: 50%;
         transform: translateX(-50%);
@@ -75,16 +78,100 @@
         touch-action: manipulation;
         width: 60%;
         text-align: center;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+        pointer-events: auto;
       }
 
       #startplay img {
         width: 100%;
         max-width: 280px;
         height: auto;
+        pointer-events: auto;
+        touch-action: manipulation;
       }
 
       button {
         outline: none;
+      }
+
+      #howtoplay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 300;
+        background: linear-gradient(180deg, #5c4033 0%, #4a3728 50%, #3d2b1f 100%);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #f5e6c8;
+        font-family: 'Arial Black', Arial, sans-serif;
+        text-align: center;
+      }
+
+      #howtoplay h1 {
+        font-size: 28px;
+        margin-bottom: 20px;
+        color: #e8b84a;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      }
+
+      #howtoplay .controls-section {
+        background: rgba(245, 230, 200, 0.15);
+        border: 2px solid #8b5a2b;
+        border-radius: 15px;
+        padding: 15px 20px;
+        margin: 10px 0;
+        width: 90%;
+        max-width: 320px;
+      }
+
+      #howtoplay .controls-section h2 {
+        font-size: 18px;
+        margin-bottom: 10px;
+        color: #e8b84a;
+      }
+
+      #howtoplay .control-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 8px 0;
+        font-size: 14px;
+        color: #f5e6c8;
+      }
+
+      #howtoplay .control-key {
+        background: #6b4423;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        color: #f5e6c8;
+        border: 1px solid #e8b84a;
+      }
+
+      #howtoplay .got-it-btn {
+        margin-top: 25px;
+        padding: 15px 50px;
+        font-size: 20px;
+        font-weight: bold;
+        background: #c45c3e;
+        color: #f5e6c8;
+        border: 3px solid #e8b84a;
+        border-radius: 30px;
+        cursor: pointer;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      #howtoplay .got-it-btn:active {
+        transform: scale(0.95);
+        background: #a34832;
       }
     </style>
   </head>
@@ -92,11 +179,41 @@
     <div id="body-container">
       <canvas id="body-canvas"></canvas>
 
-      <div id="startpage">
+      <div id="startpage" ontouchstart="window.theGame?.startGame?.()" onclick="window.theGame?.startGame?.()">
         <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/main-menu-L98hLTDlF3-FtOus6dD0Z2H5QPgFKDcZKFJChkQ7t.webp?aYpI" />
         <div id="startplay">
           <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/play-button-r33AtCDDY1-hwobctrYMCN2G3VFya5xuXhcyUPWIn.webp?ZU9Q" />
         </div>
+      </div>
+
+      <div id="howtoplay">
+        <h1>HOW TO PLAY</h1>
+
+        <div class="controls-section">
+          <h2>DESKTOP</h2>
+          <div class="control-item">
+            <span>Move</span>
+            <span class="control-key">A/D or ARROWS</span>
+          </div>
+          <div class="control-item">
+            <span>Shoot</span>
+            <span class="control-key">SPACE</span>
+          </div>
+        </div>
+
+        <div class="controls-section">
+          <h2>MOBILE</h2>
+          <div class="control-item">
+            <span>Move</span>
+            <span class="control-key">TILT PHONE</span>
+          </div>
+          <div class="control-item">
+            <span>Shoot</span>
+            <span class="control-key">TAP SCREEN</span>
+          </div>
+        </div>
+
+        <button class="got-it-btn" ontouchstart="window.closeHowToPlay?.()" onclick="window.closeHowToPlay?.()">GOT IT!</button>
       </div>
     </div>
 
@@ -684,7 +801,7 @@
           this.invincible = false;
           this.invincibleTimer = 0;
           this.flashTimer = 0;
-          this.visible = true;
+          this.invincibleAlpha = 1;
 
           // Landing detection
           this.wasFlying = false;
@@ -714,14 +831,15 @@
           // Slight rotation based on horizontal movement
           this.rotation = lerp(this.rotation, this.targetRotation, 0.1 * deltaTime);
 
-          // Invincibility flashing
+          // Invincibility fading
           if (this.invincible) {
             this.invincibleTimer -= deltaTime * 16.67; // Approximate ms
             this.flashTimer += deltaTime;
-            this.visible = Math.floor(this.flashTimer * 10) % 2 === 0;
+            // Smooth fade in/out using sine wave (oscillates between 0.2 and 1.0)
+            this.invincibleAlpha = 0.6 + 0.4 * Math.sin(this.flashTimer * 12);
             if (this.invincibleTimer <= 0) {
               this.invincible = false;
-              this.visible = true;
+              this.invincibleAlpha = 1;
             }
           }
         }
@@ -733,8 +851,6 @@
         }
 
         drawDoodle(player, leftRight) {
-          if (!this.visible) return;
-
           this.player = player;
 
           this.context.save();
@@ -748,9 +864,9 @@
           this.context.scale(this.scaleX, this.scaleY);
           this.context.translate(-centerX, -centerY);
 
-          // Draw with slight transparency when invincible
+          // Fade in/out when invincible
           if (this.invincible) {
-            this.context.globalAlpha = 0.8;
+            this.context.globalAlpha = this.invincibleAlpha;
           }
 
           this.context.drawImage(this.player, this.x, this.y, this.width, this.height);
@@ -852,25 +968,26 @@
               this.x + doodleOffset <= platArray[i].xPosition + platArray[i].platformWidth &&
               this.direction === "isFalling"
             ) {
-              if (platArray[i].platformType !== 3) {
-                // Yellow platforms give a slightly higher jump
-                if (platArray[i].platformType === 4) {
-                  this.offset = -(this.jumpRate + 4);
-                } else {
-                  this.offset = -this.jumpRate;
-                }
-                this.collisionMode = 1;
-                landed = true;
-
-                // Visual feedback
-                this.land();
-                particleSystem.landingDust(this.x + this.width / 2, this.y + this.height);
-                audioManager.play('jump', 0.6);
-                window.FarcadeSDK?.hapticFeedback?.();
-
-                // Platform bounce animation
-                platArray[i].bounce();
+              // Yellow platforms give a slightly higher jump
+              if (platArray[i].platformType === 4) {
+                this.offset = -(this.jumpRate + 4);
               } else {
+                this.offset = -this.jumpRate;
+              }
+              this.collisionMode = 1;
+              landed = true;
+
+              // Visual feedback
+              this.land();
+              particleSystem.landingDust(this.x + this.width / 2, this.y + this.height);
+              audioManager.play('jump', 0.6);
+              window.FarcadeSDK?.hapticFeedback?.();
+
+              // Platform bounce animation
+              platArray[i].bounce();
+
+              // Breaking platforms break after being jumped on
+              if (platArray[i].platformType === 3) {
                 platArray[i].fakePlatDetect = 1;
               }
               break;
@@ -1204,8 +1321,8 @@
 
           this.breakTimer += deltaTime;
 
-          // Shake phase (first 10 frames)
-          if (this.breakTimer < 10) {
+          // Shake phase (first 3 frames)
+          if (this.breakTimer < 3) {
             this.shakeX = (Math.random() - 0.5) * 6;
           } else {
             // Fall apart phase
@@ -1253,7 +1370,7 @@
           }
           if (this.platformType === 3) {
             this.context.globalAlpha = this.opacity;
-            if (this.isBreaking && this.breakTimer >= 10) {
+            if (this.isBreaking && this.breakTimer >= 3) {
               // Draw breaking pieces
               const pieceW = PLATFORM_WIDTH / 2;
               const pieceH = PLATFORM_HEIGHT / 2;
@@ -1391,6 +1508,20 @@
       var element = document.getElementById("body-canvas");
       var startPage = document.getElementById("startpage");
       var playOn = document.getElementById("startplay");
+      var howToPlayPage = document.getElementById("howtoplay");
+
+      // Show how to play for first-time players (called when play is clicked)
+      function showHowToPlay() {
+        howToPlayPage.style.display = "flex";
+        startPage.style.display = "none";
+      }
+
+      window.closeHowToPlay = function() {
+        localStorage.setItem("hasSeenTutorial", "true");
+        howToPlayPage.style.display = "none";
+        // Now actually start the game
+        window.theGame?.actuallyStartGame?.();
+      };
 
       function resizeGame() {
         const container = document.getElementById('body-container');
@@ -1459,7 +1590,9 @@
           this.booster1 = SPRITES.booster1;
           this.booster2 = SPRITES.booster2;
           this.booster3 = SPRITES.booster3;
-          this.boosterJetpack = SPRITES.boosterJetpack;
+          this.boosterJetpackLong = SPRITES.boosterJetpackLong;
+          this.boosterJetpackShort = SPRITES.boosterJetpackShort;
+          this.jetpackFlameFrame = 0;
           this.drinkingGlass = SPRITES.drinkingGlass;
           this.healthReinstate = SPRITES.healthReinstate;
 
@@ -1490,6 +1623,7 @@
           this.status = "isPlaying";
           this.drunkenMode = 0;
           this.drunkMovementActive = false; // Keeps drunk movement until landing
+          this.drunkNeedsFallFirst = false; // Must fall before landing clears drunk movement
 
           // Timing
           this.lastTime = 0;
@@ -1528,31 +1662,68 @@
           }
           this.canvas.style.display = "none";
           startPage.style.display = "block";
-
           this.gameStarted = false;
-          const startGame = () => {
-            if (this.gameStarted) return;
-            this.gameStarted = true;
-            startPage.style.display = "none";
-            this.canvas.style.display = "block";
-            this.init();
-            this.bindEvents();
-            this.newCanvas();
-            this.lastTime = performance.now();
-            this.gameLoop();
-          };
 
-          // Touch for mobile - touchstart works better on iOS than pointerdown
-          playOn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            startGame();
-          }, { passive: false });
+          // Only bind play button events once
+          if (!this.playButtonBound) {
+            this.playButtonBound = true;
 
-          // Click for desktop
-          playOn.addEventListener('click', (e) => {
-            e.preventDefault();
-            startGame();
-          });
+            // The actual game start logic
+            const actuallyStartGame = () => {
+              if (this.gameStarted) return;
+              this.gameStarted = true;
+              startPage.style.display = "none";
+              howToPlayPage.style.display = "none";
+              this.canvas.style.display = "block";
+              this.init();
+              this.bindEvents();
+              this.newCanvas();
+              this.lastTime = performance.now();
+              this.gameLoop();
+            };
+
+            // Called when play button is clicked
+            const startGame = () => {
+              if (this.gameStarted) return;
+              // Always show how to play (TODO: change back to only new players)
+              showHowToPlay();
+            };
+
+            // Store references for use in handlers
+            this.startGame = startGame;
+            this.actuallyStartGame = actuallyStartGame;
+
+            // Touch for mobile
+            playOn.addEventListener('touchstart', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              this.startGame();
+            }, { passive: false });
+
+            // Also listen on the image itself
+            const playImg = playOn.querySelector('img');
+            if (playImg) {
+              playImg.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.startGame();
+              }, { passive: false });
+            }
+
+            // Click for desktop
+            playOn.addEventListener('click', (e) => {
+              e.preventDefault();
+              this.startGame();
+            });
+
+            // Pointer events as fallback
+            playOn.addEventListener('pointerdown', (e) => {
+              if (e.pointerType === 'touch') {
+                e.preventDefault();
+                this.startGame();
+              }
+            });
+          }
         }
 
         init() {
@@ -1632,49 +1803,70 @@
             this.tapTimer = new Date();
           };
 
-          // Mobile touch controls - move toward finger position
-          this.touchActive = false;
+          // Mobile tilt controls - use device orientation for movement
+          this.tiltEnabled = false;
+          this.tiltX = 0;
 
-          const handleTouch = (event) => {
-            event.preventDefault();
-            const touch = event.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            const isDrunk = this.drunkenMode || this.drunkMovementActive;
-
-            // Convert from CSS pixels to logical game coordinates
-            const scaleX = CANVAS_WIDTH / rect.width;
-            const touchX = (touch.clientX - rect.left) * scaleX;
-            const doodleCenterX = this.doodle.x + this.doodle.width / 2;
-
-            // Move toward finger position
-            if (touchX < doodleCenterX - 20) {
-              this.doodleXchange = isDrunk ? -PLAYER_DRUNK_SPEED : -PLAYER_MOVE_SPEED;
-              this.leftRight = 1;
-            } else if (touchX > doodleCenterX + 20) {
-              this.doodleXchange = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
-              this.leftRight = 0;
-            } else {
-              if (!isDrunk) this.doodleXchange = 0;
+          // Request permission for device orientation (required on iOS 13+)
+          const enableTilt = () => {
+            if (typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+              // iOS 13+ requires permission
+              DeviceOrientationEvent.requestPermission()
+                .then(permission => {
+                  if (permission === 'granted') {
+                    this.tiltEnabled = true;
+                    window.addEventListener('deviceorientation', handleOrientation);
+                  }
+                })
+                .catch(console.error);
+            } else if ('DeviceOrientationEvent' in window) {
+              // Non-iOS devices
+              this.tiltEnabled = true;
+              window.addEventListener('deviceorientation', handleOrientation);
             }
           };
 
-          this.canvas.addEventListener('touchstart', (event) => {
-            this.touchActive = true;
-            handleTouch(event);
-          }, { passive: false });
+          const handleOrientation = (event) => {
+            if (this.status !== "isPlaying") return;
 
-          this.canvas.addEventListener('touchmove', (event) => {
-            if (this.touchActive) {
-              handleTouch(event);
-            }
-          }, { passive: false });
+            // gamma is left-to-right tilt (-90 to 90)
+            const tilt = event.gamma || 0;
+            const isDrunk = this.drunkenMode || this.drunkMovementActive;
+            const baseSpeed = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
 
-          this.canvas.addEventListener('touchend', () => {
-            this.touchActive = false;
-            if (!(this.drunkenMode || this.drunkMovementActive)) {
+            // Dead zone to prevent drift
+            const deadZone = 5;
+
+            if (Math.abs(tilt) > deadZone) {
+              // Scale tilt to movement speed (-30 to 30 degrees = full speed)
+              const normalizedTilt = Math.max(-30, Math.min(30, tilt)) / 30;
+              this.doodleXchange = normalizedTilt * baseSpeed;
+              this.leftRight = tilt < 0 ? 1 : 0;
+            } else if (!isDrunk) {
               this.doodleXchange = 0;
             }
-          });
+          };
+
+          // Enable tilt on first touch (needed for iOS permission)
+          this.canvas.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+
+            // Enable tilt controls on first touch
+            if (!this.tiltEnabled) {
+              enableTilt();
+            }
+
+            // Tap to shoot
+            if (this.status === "isPlaying") {
+              this.leftRight = 2;
+              this.doodleClicked = 1;
+              this.shoot();
+            }
+          }, { passive: false });
+
+          // Try to enable tilt automatically for non-iOS
+          enableTilt();
         }
 
         shoot() {
@@ -2157,6 +2349,7 @@
           this.chance = INITIAL_CHANCES;
           this.drunkenMode = 0;
           this.drunkMovementActive = false;
+          this.drunkNeedsFallFirst = false;
           this.status = "isPlaying";
 
           this.setUp();
@@ -2217,7 +2410,14 @@
             // Update doodle
             this.doodle.doodleJumpSpeed(this.score);
             const landed = this.doodle.jumpFromPlatform(this.particleSystem, this.platformArray, this.boosterArray);
-            if (landed && this.drunkMovementActive) {
+
+            // Clear drunkNeedsFallFirst once player starts falling after drunk mode ends
+            if (this.doodle.direction === "isFalling" && this.drunkNeedsFallFirst) {
+              this.drunkNeedsFallFirst = false;
+            }
+
+            // Only clear drunk movement after player has fallen and then landed
+            if (landed && this.drunkMovementActive && !this.drunkNeedsFallFirst) {
               this.drunkMovementActive = false;
             }
             this.doodle.moveDoodle(this.doodleXchange, this.deltaTime);
@@ -2226,6 +2426,7 @@
 
             if (this.doodle.direction === "isFalling" && this.doodle.boostJetpack === 1) {
               this.doodle.boostJetpack = 0;
+              this.jetpackFlameFrame = 0;
             }
 
             // Jetpack particles
@@ -2246,7 +2447,12 @@
                 this.doodle.drawDoodle(this.playerUp, this.leftRight);
               }
             } else {
-              this.doodle.drawDoodle(this.boosterJetpack, 3);
+              // Alternate between long and short flame
+              this.jetpackFlameFrame++;
+              const jetpackSprite = (Math.floor(this.jetpackFlameFrame / 8) % 2 === 0)
+                ? this.boosterJetpackLong
+                : this.boosterJetpackShort;
+              this.doodle.drawDoodle(jetpackSprite, 3);
             }
 
             // Update and draw bullets
@@ -2439,6 +2645,7 @@
             if (this.drunkNow - this.drunkStart >= DRUNK_DURATION && this.drunkenMode) {
               this.drunkenMode = 0;
               this.drunkMovementActive = true; // Keep movement until landing
+              this.drunkNeedsFallFirst = true; // Must fall before landing clears it
             }
 
             this.obstaclewiseMotion(this.deltaTime);
@@ -2587,8 +2794,11 @@
         SPRITES.booster3 = loadSprite(
           "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/jetpack-item-UY19kfOVli-EdI0P3TQxQM4NABwiNWQRh5IOuprbY.webp?PMN7"
         );
-        SPRITES.boosterJetpack = loadSprite(
+        SPRITES.boosterJetpackLong = loadSprite(
           "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/jetpack-long-flame-oMJwID6wos-pv4lc3tF80DJIlAtkpEUyWyMqQsmMO.webp?5h0H"
+        );
+        SPRITES.boosterJetpackShort = loadSprite(
+          "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/jetpack-short-flame-eMh2amcmwO-3CVUqGf1hvsxEwjcGVXRPWqWq9gbdc.webp?yL1l"
         );
         SPRITES.drinkingGlass = loadSprite(
           "https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/drunk-potion-c43BZjt8kG-saGzoLZ6M7UnX6YpdHG8DIXEE8Sjzy.webp?sfWo"
