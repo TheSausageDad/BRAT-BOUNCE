@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>BRAT BOUNCE</title>
-    <script src="https://cdn.jsdelivr.net/npm/@farcade/game-sdk@latest/dist/index.min.js"></script>
+    <meta name="x-ogp-key" content="f97c429f-61b9-43c4-89bc-2d2155f8fb8e" id="ogp-key-meta" />
+    <script src="https://sdk.play.fun"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <style>
       :root {
@@ -1090,7 +1091,6 @@
               }
 
               if (obs.type === 5) {
-                window.FarcadeSDK?.hapticFeedback?.();
                 this.isJetpacking = true;
                 setTimeout(() => {
                   this.isJetpacking = false;
@@ -1099,13 +1099,11 @@
               } else if (obs.type === 6) {
                 // Only collect health potion if not at max lives
                 if (currentLives < maxLives) {
-                  window.FarcadeSDK?.hapticFeedback?.();
                   return { type: 2, index: i };
                 }
                 // At max lives - ignore the potion
                 return { type: -1, index: -1 };
               } else {
-                window.FarcadeSDK?.hapticFeedback?.();
                 return { type: 0, index: i };
               }
             }
@@ -1137,7 +1135,6 @@
               this.land();
               particleSystem.landingDust(this.x + this.width / 2, this.y + this.height);
               audioManager.play('jump', 0.6);
-              window.FarcadeSDK?.hapticFeedback?.();
 
               // Platform bounce animation
               platArray[i].bounce();
@@ -2538,7 +2535,9 @@
             localStorage.setItem("Doodle", `${finalScore}`);
           }
 
-          window.FarcadeSDK?.singlePlayer?.actions.gameOver?.({ score: finalScore });
+          if (window._playFunSDK) {
+            window._playFunSDK.savePoints(finalScore);
+          }
 
           // Go back to start page after a short delay
           setTimeout(() => {
@@ -3113,27 +3112,18 @@
         window.theGame = new GAME(element);
 
         window.addEventListener("load", () => {
-          setTimeout(() => {
-            console.log("Calling Farcade ready...");
-            window.FarcadeSDK?.singlePlayer?.actions.ready?.();
-          }, 300);
-        });
-      });
-
-      window.FarcadeSDK?.onPlayAgain?.(() => {
-        if (window.theGame?.restartGame) {
-          window.theGame.restartGame();
-        }
-      });
-
-      window.FarcadeSDK?.onToggleMute?.((data) => {
-        const isMuted = data?.isMuted;
-        audioManager.setMuted(isMuted);
-        for (let key in AUDIOS) {
-          if (AUDIOS[key]) {
-            AUDIOS[key].muted = isMuted;
+          // Initialize Play.fun SDK
+          if (typeof OpenGameSDK !== 'undefined') {
+            window._playFunSDK = new OpenGameSDK({
+              ui: { usePointsWidget: true },
+              logLevel: 1,
+            });
+            window._playFunSDK.init();
+            console.log('[OK] Play.fun SDK initialized');
+          } else {
+            console.warn('[X] Play.fun SDK not loaded');
           }
-        }
+        });
       });
 
       // Touch controls (only if buttons exist)
@@ -3184,21 +3174,6 @@
         e.preventDefault();
       });
 
-      // Farcade SDK ready
-      function waitForFarcadeAndReady(retries = 20) {
-        if (typeof window.FarcadeSDK !== "undefined" && window.FarcadeSDK?.singlePlayer?.actions?.ready) {
-          console.log("[OK] Farcade ready triggered");
-          window.FarcadeSDK.singlePlayer.actions.ready();
-        } else if (retries > 0) {
-          setTimeout(() => waitForFarcadeAndReady(retries - 1), 250);
-        } else {
-          console.warn("[X] Farcade ready NOT triggered. SDK never loaded.");
-        }
-      }
-
-      window.addEventListener("load", () => {
-        waitForFarcadeAndReady();
-      });
     </script>
   </body>
 </html>
