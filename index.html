@@ -30,7 +30,63 @@
         width: 100%;
         height: 100%;
         height: 100dvh;
-        touch-action: none;
+        touch-action: manipulation;
+      }
+
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(180deg, #5c4033 0%, #4a3728 50%, #3d2b1f 100%);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.4s ease-out;
+      }
+
+      #loading-screen.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #loading-content {
+        text-align: center;
+      }
+
+      #loading-title {
+        font-family: 'Arial Black', Arial, sans-serif;
+        font-size: 36px;
+        color: #e8b84a;
+        letter-spacing: 3px;
+        margin-bottom: 30px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      }
+
+      #loading-bar-container {
+        width: 200px;
+        height: 8px;
+        background: rgba(245, 230, 200, 0.15);
+        border: 1px solid #8b5a2b;
+        border-radius: 4px;
+        margin: 0 auto 15px;
+        overflow: hidden;
+      }
+
+      #loading-bar {
+        width: 0%;
+        height: 100%;
+        background: #e8b84a;
+        border-radius: 4px;
+        transition: width 0.2s ease-out;
+      }
+
+      #loading-text {
+        font-family: 'Arial Black', Arial, sans-serif;
+        font-size: 14px;
+        color: #f5e6c8;
       }
 
       #body-container {
@@ -59,6 +115,9 @@
         touch-action: manipulation;
         pointer-events: auto;
         cursor: pointer;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
 
       #startpage > img {
@@ -66,6 +125,8 @@
         height: 100%;
         object-fit: fill;
         pointer-events: none;
+        -webkit-touch-callout: none;
+        -webkit-user-drag: none;
       }
 
       #startplay {
@@ -81,6 +142,7 @@
         -webkit-tap-highlight-color: transparent;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-touch-callout: none;
         pointer-events: auto;
       }
 
@@ -88,8 +150,86 @@
         width: 100%;
         max-width: 280px;
         height: auto;
-        pointer-events: auto;
+        pointer-events: none;
         touch-action: manipulation;
+        -webkit-touch-callout: none;
+        -webkit-user-drag: none;
+      }
+
+      #mobile-controls {
+        display: none;
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        z-index: 500;
+        pointer-events: none;
+        padding: 0 15px;
+        box-sizing: border-box;
+      }
+
+      #move-slider {
+        position: absolute;
+        bottom: 0;
+        left: 15px;
+        width: 140px;
+        height: 60px;
+        pointer-events: auto;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      #move-track {
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 30px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #move-thumb {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateX(-50%);
+        margin-top: -25px;
+        will-change: transform;
+      }
+
+      #fire-btn {
+        position: absolute;
+        bottom: 0;
+        right: 15px;
+        width: 95px;
+        height: 95px;
+        pointer-events: auto;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+
+      #fire-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        pointer-events: none;
+        -webkit-touch-callout: none;
+        -webkit-user-drag: none;
+      }
+
+      #fire-btn:active {
+        transform: scale(0.9);
       }
 
       button {
@@ -176,10 +316,31 @@
     </style>
   </head>
   <body>
+    <!-- Loading screen shown immediately -->
+    <div id="loading-screen">
+      <div id="loading-content">
+        <div id="loading-title">BRAT BOUNCE</div>
+        <div id="loading-bar-container">
+          <div id="loading-bar"></div>
+        </div>
+        <div id="loading-text">Loading...</div>
+      </div>
+    </div>
+
     <div id="body-container">
       <canvas id="body-canvas"></canvas>
 
-      <div id="startpage" ontouchstart="window.theGame?.startGame?.()" onclick="window.theGame?.startGame?.()">
+      <!-- Mobile touch controls -->
+      <div id="mobile-controls">
+        <div id="move-slider">
+          <div id="move-track">
+            <div id="move-thumb"></div>
+          </div>
+        </div>
+        <div id="fire-btn"><img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/fire-button-YZOx8iwVLU-5feb59uZfXNWDL3TyQ7kfQfp7TELwL.webp?rHAz" /></div>
+      </div>
+
+      <div id="startpage">
         <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/main-menu-L98hLTDlF3-FtOus6dD0Z2H5QPgFKDcZKFJChkQ7t.webp?aYpI" />
         <div id="startplay">
           <img src="https://remix.gg/blob/d0b815c7-f556-46cc-a896-d67fc30bca7a/play-button-r33AtCDDY1-hwobctrYMCN2G3VFya5xuXhcyUPWIn.webp?ZU9Q" />
@@ -411,7 +572,7 @@
         constructor() {
           this.particles = [];
           this.pool = [];
-          this.maxParticles = 200;
+          this.maxParticles = 100;
         }
 
         getParticle() {
@@ -460,7 +621,7 @@
         }
 
         jetpackTrail(x, y) {
-          this.emit(x, y, 3, {
+          this.emit(x, y, 2, {
             angle: Math.PI / 2,
             spread: 0.5,
             speed: 4,
@@ -471,7 +632,7 @@
         }
 
         deathExplosion(x, y) {
-          this.emit(x, y, 30, {
+          this.emit(x, y, 15, {
             angle: 0,
             spread: Math.PI * 2,
             speed: 5,
@@ -482,7 +643,7 @@
         }
 
         enemyDeath(x, y) {
-          this.emit(x, y, 15, {
+          this.emit(x, y, 8, {
             angle: 0,
             spread: Math.PI * 2,
             speed: 3,
@@ -493,7 +654,7 @@
         }
 
         collectPowerup(x, y) {
-          this.emit(x, y, 20, {
+          this.emit(x, y, 10, {
             angle: -Math.PI / 2,
             spread: Math.PI * 2,
             speed: 3,
@@ -508,7 +669,8 @@
             this.particles[i].update(deltaTime);
             if (!this.particles[i].active) {
               this.returnParticle(this.particles[i]);
-              this.particles.splice(i, 1);
+              this.particles[i] = this.particles[this.particles.length - 1];
+              this.particles.pop();
             }
           }
         }
@@ -550,14 +712,12 @@
 
         draw(context) {
           const alpha = this.life / this.maxLife;
-          const scale = 1 + (1 - alpha) * 0.3;
-          context.save();
           context.globalAlpha = alpha;
-          context.font = `bold ${Math.floor(20 * scale)}px Arial`;
+          context.font = 'bold 20px Arial';
           context.fillStyle = this.color;
           context.textAlign = 'center';
           context.fillText(this.text, this.x, this.y);
-          context.restore();
+          context.globalAlpha = 1;
         }
       }
 
@@ -574,7 +734,8 @@
           for (let i = this.texts.length - 1; i >= 0; i--) {
             this.texts[i].update();
             if (!this.texts[i].active) {
-              this.texts.splice(i, 1);
+              this.texts[i] = this.texts[this.texts.length - 1];
+              this.texts.pop();
             }
           }
         }
@@ -712,37 +873,32 @@
             );
             this.context.restore();
           } else {
-            // Draw enemy bullet with glow (red)
-            // Draw trail
-            for (let i = 0; i < this.trail.length; i++) {
-              const alpha = i / this.trail.length * 0.5;
-              const size = this.radius * (i / this.trail.length);
+            // Draw enemy bullet - simple circles (no gradient for performance)
+            const bx = this.xCentre - this.radius;
+            const by = this.yCentre - this.radius;
+
+            // Draw last 3 trail points only
+            const tLen = this.trail.length;
+            const trailStart = Math.max(0, tLen - 3);
+            for (let i = trailStart; i < tLen; i++) {
+              const alpha = (i - trailStart + 1) / 3 * 0.4;
               this.context.globalAlpha = alpha;
               this.context.beginPath();
-              this.context.arc(this.trail[i].x, this.trail[i].y, size, 0, 2 * Math.PI);
+              this.context.arc(this.trail[i].x, this.trail[i].y, BULLET_RADIUS * 0.5, 0, 2 * Math.PI);
               this.context.fillStyle = "red";
               this.context.fill();
             }
             this.context.globalAlpha = 1;
 
-            // Draw bullet with glow
+            // Outer glow circle
             this.context.beginPath();
-            this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS, 0, 2 * Math.PI);
-
-            // Glow effect
-            const gradient = this.context.createRadialGradient(
-              this.xCentre - this.radius, this.yCentre - this.radius, 0,
-              this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 2
-            );
-            gradient.addColorStop(0, "rgba(255, 100, 100, 1)");
-            gradient.addColorStop(0.5, "rgba(255, 0, 0, 0.8)");
-            gradient.addColorStop(1, "rgba(255, 0, 0, 0)");
-            this.context.fillStyle = gradient;
+            this.context.arc(bx, by, BULLET_RADIUS, 0, 2 * Math.PI);
+            this.context.fillStyle = "rgba(255, 0, 0, 0.5)";
             this.context.fill();
 
             // Core
             this.context.beginPath();
-            this.context.arc(this.xCentre - this.radius, this.yCentre - this.radius, BULLET_RADIUS * 0.6, 0, 2 * Math.PI);
+            this.context.arc(bx, by, BULLET_RADIUS * 0.6, 0, 2 * Math.PI);
             this.context.fillStyle = "#ff6666";
             this.context.fill();
           }
@@ -1571,7 +1727,7 @@
       class GAME {
         constructor(element) {
           this.canvas = element;
-          const dpr = window.devicePixelRatio || 1;
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
           this.canvas.width = CANVAS_WIDTH * dpr;
           this.canvas.height = CANVAS_HEIGHT * dpr;
           this.context = element.getContext("2d");
@@ -1680,6 +1836,7 @@
               this.newCanvas();
               this.lastTime = performance.now();
               this.gameLoop();
+              if (this.showMobileControls) this.showMobileControls();
             };
 
             // Called when play button is clicked
@@ -1803,15 +1960,19 @@
             this.tapTimer = new Date();
           };
 
-          // Mobile tilt controls - use device orientation for movement
+          // Mobile controls
           this.tiltEnabled = false;
-          this.tiltX = 0;
+          this.isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          const mobileControls = document.getElementById('mobile-controls');
+          const moveSlider = document.getElementById('move-slider');
+          const moveThumb = document.getElementById('move-thumb');
+          const moveTrack = document.getElementById('move-track');
+          const fireBtn = document.getElementById('fire-btn');
 
-          // Request permission for device orientation (required on iOS 13+)
+          // Try tilt first (works outside iframes)
           const enableTilt = () => {
             if (typeof DeviceOrientationEvent !== 'undefined' &&
                 typeof DeviceOrientationEvent.requestPermission === 'function') {
-              // iOS 13+ requires permission
               DeviceOrientationEvent.requestPermission()
                 .then(permission => {
                   if (permission === 'granted') {
@@ -1821,7 +1982,6 @@
                 })
                 .catch(console.error);
             } else if ('DeviceOrientationEvent' in window) {
-              // Non-iOS devices
               this.tiltEnabled = true;
               window.addEventListener('deviceorientation', handleOrientation);
             }
@@ -1829,17 +1989,11 @@
 
           const handleOrientation = (event) => {
             if (this.status !== "isPlaying") return;
-
-            // gamma is left-to-right tilt (-90 to 90)
             const tilt = event.gamma || 0;
             const isDrunk = this.drunkenMode || this.drunkMovementActive;
             const baseSpeed = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
-
-            // Dead zone to prevent drift
             const deadZone = 5;
-
             if (Math.abs(tilt) > deadZone) {
-              // Scale tilt to movement speed (-30 to 30 degrees = full speed)
               const normalizedTilt = Math.max(-30, Math.min(30, tilt)) / 30;
               this.doodleXchange = normalizedTilt * baseSpeed;
               this.leftRight = tilt < 0 ? 1 : 0;
@@ -1848,28 +2002,107 @@
             }
           };
 
-          // Enable tilt on first touch (needed for iOS permission)
-          this.canvas.addEventListener('touchstart', (event) => {
-            event.preventDefault();
-
-            // Enable tilt controls on first touch
-            if (!this.tiltEnabled) {
-              enableTilt();
+          // Show mobile controls when game is playing
+          this.showMobileControls = () => {
+            if (this.isMobile && mobileControls) {
+              mobileControls.style.display = 'block';
             }
+          };
+          this.hideMobileControls = () => {
+            if (mobileControls) mobileControls.style.display = 'none';
+          };
 
-            // Tap to shoot
-            if (this.status === "isPlaying") {
-              this.leftRight = 2;
-              this.doodleClicked = 1;
-              this.shoot();
-            }
-          }, { passive: false });
+          // --- FIRE BUTTON ---
+          this.lastShootTime = 0;
+          if (fireBtn) {
+            fireBtn.addEventListener('touchstart', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (this.status === "isPlaying") {
+                const now = Date.now();
+                if (now - this.lastShootTime < 200) return;
+                this.lastShootTime = now;
+                this.leftRight = 2;
+                this.doodleClicked = 1;
+                this.shoot();
+              }
+            }, { passive: false });
+          }
+
+          // --- MOVEMENT SLIDER ---
+          if (moveSlider) {
+            let sliderActive = false;
+            const trackWidth = 140;
+            const thumbWidth = 50;
+            const maxSlide = (trackWidth - thumbWidth) / 2;
+            let cachedTrackRect = null;
+
+            const handleSliderMove = (clientX) => {
+              if (this.status !== "isPlaying" || !cachedTrackRect) return;
+              const center = cachedTrackRect.left + cachedTrackRect.width / 2;
+              const offset = clientX - center;
+              const clamped = Math.max(-maxSlide, Math.min(maxSlide, offset));
+
+              // Move thumb visually with transform (GPU accelerated)
+              moveThumb.style.transform = 'translateX(' + (clamped - maxSlide) + 'px)';
+
+              // Apply movement
+              const normalizedOffset = clamped / maxSlide;
+              const isDrunk = this.drunkenMode || this.drunkMovementActive;
+              const baseSpeed = isDrunk ? PLAYER_DRUNK_SPEED : PLAYER_MOVE_SPEED;
+
+              if (Math.abs(normalizedOffset) > 0.1) {
+                this.doodleXchange = normalizedOffset * baseSpeed;
+                this.leftRight = normalizedOffset < 0 ? 1 : 0;
+              } else {
+                this.doodleXchange = 0;
+              }
+            };
+
+            const resetSlider = () => {
+              sliderActive = false;
+              cachedTrackRect = null;
+              moveThumb.style.transform = 'translateX(-50%)';
+              if (!this.tiltEnabled) {
+                this.doodleXchange = 0;
+              }
+            };
+
+            moveSlider.addEventListener('touchstart', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              sliderActive = true;
+              cachedTrackRect = moveTrack.getBoundingClientRect();
+              // Request tilt on first touch
+              if (!this.tiltEnabled) enableTilt();
+              handleSliderMove(e.touches[0].clientX);
+            }, { passive: false });
+
+            moveSlider.addEventListener('touchmove', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (sliderActive) {
+                handleSliderMove(e.touches[0].clientX);
+              }
+            }, { passive: false });
+
+            moveSlider.addEventListener('touchend', (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              resetSlider();
+            }, { passive: false });
+
+            moveSlider.addEventListener('touchcancel', (e) => {
+              resetSlider();
+            }, { passive: false });
+          }
 
           // Try to enable tilt automatically for non-iOS
           enableTilt();
         }
 
         shoot() {
+          if (this.bulletArray.length >= 5) return;
           const bullet = this.bulletPool.get(
             this.doodle.x + this.doodle.width / 2,
             this.doodle.y
@@ -1989,9 +2222,6 @@
         }
 
         newCanvas() {
-          this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-          this.context.fillStyle = "black";
-          this.context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
           this.context.drawImage(this.backgroundImage, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
         }
 
@@ -2111,7 +2341,8 @@
                   // Remove enemy and bullet
                   this.obstacleArray.splice(j, 1);
                   this.bulletPool.release(bullet);
-                  this.bulletArray.splice(i, 1);
+                  this.bulletArray[i] = this.bulletArray[this.bulletArray.length - 1];
+                  this.bulletArray.pop();
                   break;
                 }
               }
@@ -2172,8 +2403,11 @@
               }
 
               this.enemyBulletPool.release(bullet);
-              this.enemyBulletArray.splice(h, 1);
-              this.theta.splice(h, 1);
+              const lastIdx = this.enemyBulletArray.length - 1;
+              this.enemyBulletArray[h] = this.enemyBulletArray[lastIdx];
+              this.enemyBulletArray.pop();
+              this.theta[h] = this.theta[lastIdx];
+              this.theta.pop();
               break;
             }
           }
@@ -2202,10 +2436,14 @@
                 this.floatingTextSystem.add(playerBullet.xCentre, playerBullet.yCentre, `+${points}`, '#00ff00');
 
                 this.bulletPool.release(playerBullet);
-                this.bulletArray.splice(r, 1);
+                this.bulletArray[r] = this.bulletArray[this.bulletArray.length - 1];
+                this.bulletArray.pop();
                 this.enemyBulletPool.release(enemyBullet);
-                this.enemyBulletArray.splice(t, 1);
-                this.theta.splice(t, 1);
+                const lastEIdx = this.enemyBulletArray.length - 1;
+                this.enemyBulletArray[t] = this.enemyBulletArray[lastEIdx];
+                this.enemyBulletArray.pop();
+                this.theta[t] = this.theta[lastEIdx];
+                this.theta.pop();
                 break;
               }
             }
@@ -2257,11 +2495,8 @@
             this.context.roundRect(10, timerY, barWidth, barHeight, 6);
             this.context.fill();
 
-            // Progress fill with gradient
-            const gradient = this.context.createLinearGradient(10, timerY, 10 + barWidth, timerY);
-            gradient.addColorStop(0, "#b8ff00");
-            gradient.addColorStop(1, "#8bc700");
-            this.context.fillStyle = gradient;
+            // Progress fill
+            this.context.fillStyle = "#a0e000";
             this.context.beginPath();
             this.context.roundRect(10, timerY, barWidth * progress, barHeight, 6);
             this.context.fill();
@@ -2289,6 +2524,7 @@
         gameOver() {
           this.status = "notPlaying";
           cancelAnimationFrame(this.animator);
+          if (this.hideMobileControls) this.hideMobileControls();
 
           // Death effects
           this.particleSystem.deathExplosion(
@@ -2461,7 +2697,8 @@
               this.bulletArray[i].bulletDraw("isDoodle");
               if (this.bulletArray[i].yCentre + this.bulletArray[i].radius < 0) {
                 this.bulletPool.release(this.bulletArray[i]);
-                this.bulletArray.splice(i, 1);
+                this.bulletArray[i] = this.bulletArray[this.bulletArray.length - 1];
+                this.bulletArray.pop();
               }
             }
 
@@ -2508,8 +2745,11 @@
                 this.enemyBulletArray[i].xCentre - this.enemyBulletArray[i].radius > CANVAS_WIDTH
               ) {
                 this.enemyBulletPool.release(this.enemyBulletArray[i]);
-                this.enemyBulletArray.splice(i, 1);
-                this.theta.splice(i, 1);
+                const lastEBIdx = this.enemyBulletArray.length - 1;
+                this.enemyBulletArray[i] = this.enemyBulletArray[lastEBIdx];
+                this.enemyBulletArray.pop();
+                this.theta[i] = this.theta[lastEBIdx];
+                this.theta.pop();
               }
             }
 
@@ -2676,7 +2916,8 @@
               const done = platform.updateBreaking(this.deltaTime);
               platform.drawPlatform();
               if (done) {
-                this.animatingPlatformArray.splice(i, 1);
+                this.animatingPlatformArray[i] = this.animatingPlatformArray[this.animatingPlatformArray.length - 1];
+                this.animatingPlatformArray.pop();
               }
             }
 
@@ -2704,30 +2945,32 @@
       const AUDIOS = {};
       const SPRITES = {};
       let ctx = document.getElementById("body-canvas").getContext("2d");
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       ctx.canvas.width = CANVAS_WIDTH * dpr;
       ctx.canvas.height = CANVAS_HEIGHT * dpr;
       ctx.scale(dpr, dpr);
+
+      const loadingBar = document.getElementById('loading-bar');
+      const loadingText = document.getElementById('loading-text');
+      const loadingScreen = document.getElementById('loading-screen');
 
       function assetsLoadingLoop(callback) {
         if (numAssets === 0) return;
 
         loadedPercent = ((numAssets - assetsStillLoading) / numAssets) * 100;
 
-        ctx.beginPath();
-        ctx.fillStyle = "black";
-        ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        ctx.font = "30px Arial";
-        ctx.fillText("Loading.....", CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-        ctx.fillStyle = "#2dd";
-        ctx.font = "30px Arial";
-        ctx.fillText(`${parseInt(loadedPercent)}%`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40);
+        // Update loading bar
+        if (loadingBar) loadingBar.style.width = loadedPercent + '%';
+        if (loadingText) loadingText.textContent = 'Loading... ' + parseInt(loadedPercent) + '%';
 
         if (assetsStillLoading === 0) {
           callback();
           window.cancelAnimationFrame(assetsLoader);
+          // Hide loading screen with fade
+          if (loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 400);
+          }
         } else {
           assetsLoader = window.requestAnimationFrame(() => assetsLoadingLoop(callback));
         }
@@ -2749,11 +2992,21 @@
         function loadAudio(fileName) {
           assetsStillLoading++;
           let audio = new Audio(fileName);
-          audio.oncanplaythrough = () => assetsStillLoading--;
+          let loaded = false;
+          const markLoaded = () => {
+            if (!loaded) {
+              loaded = true;
+              assetsStillLoading--;
+            }
+          };
+          audio.oncanplaythrough = markLoaded;
+          audio.onloadeddata = markLoaded;  // Fallback for iOS
           audio.onerror = () => {
             console.warn("Failed to load audio:", fileName);
-            assetsStillLoading--;
+            markLoaded();
           };
+          // iOS fallback: if audio doesn't load in 2 seconds, continue anyway
+          setTimeout(markLoaded, 2000);
           return audio;
         }
 

@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "skills": {
+    "add-3d-assets": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "de61af3a876ba1f11165d623321712385c65256a4f81ad32af9e0ec3199d34b6"
+    },
+    "add-assets": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "812e983d235934c87134eb27bbc5bb7f52fa6ead9953915996069d5068440fbd"
+    },
+    "add-audio": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "113cc7985566fcc4bd57f9dcf8ce9e9d6ec2c8c0cb405c25454e3cdd6b2ef5e3"
+    },
+    "add-feature": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "8c33355c8f0da11520fcd87e7bceefe85e209306a4c6d2292048600b3adbfbad"
+    },
+    "design-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "9e43e1b9a1630bd2269d98074477600802cf3145817eaaa660745d9f90f7412a"
+    },
+    "fetch-tweet": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "0f0e3227035eb33a40ec24ffb86388848f8bb2f91ecf3f5d2c91a7f91b296eb5"
+    },
+    "game-3d-assets": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "7cd8c8f0c8e385eba0a78caa7ebd4364b21d3f7996cf3db391ec2c99915f269d"
+    },
+    "game-architecture": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "cb3b73d3b5155d6f224c9a809d9ef35861535c746707b704f01cbb7130d6ea17"
+    },
+    "game-assets": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "728786f34134354ed9310829c10eaa49e7d7582d3dbab6093e8ce116c14965b3"
+    },
+    "game-audio": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "684e362993b2f5774ad459d669e7eed89fd1e64af09d752f1afb1947927f907c"
+    },
+    "game-deploy": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "553d24e698955f68968f8579fe9d82209a7d3fa4cdac205eb61d8461c1a95564"
+    },
+    "game-designer": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "edba5724c14b54ae1ec86f59bc4351bbdf0edb90c840027e63854c7856eca8fe"
+    },
+    "game-qa": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "ccfcc15bfe897c8a1902028d183bada440acb174b2b7359058601b2e52ee5db6"
+    },
+    "improve-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "48a25fcd8cc0d7ed0cdf304ac334590ceecdfd2c91ecee9312b5d3d4500ee703"
+    },
+    "make-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "67a4cb06079d992d93a3a64d790b98b6ec7970b1054a873ef1da6877c36345be"
+    },
+    "meshyai": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "5b7d94ea8f63b5060d5c3409d454c4cc7a0ae3ff7b3025b7b10020df07bd9e2d"
+    },
+    "monetize-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "8573f64f533789f648038c0e3ac7ca6af36a8ecc44cb772eeaa770a26c99f484"
+    },
+    "phaser": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "d91ff89dc24a4133006acadadd8d6a17b4bf80aaca51728fe308b6b6d2c08ebc"
+    },
+    "promo-video": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "15a7552ce2551ff92372c1af19d90933521d63d51fedbae9389f50b64ceb92c0"
+    },
+    "qa-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "e82755142b24f3cf71f76bd81cd0f11a544a3f74b9413ed9afebec8cc2d05064"
+    },
+    "record-promo": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "eed6fc863bc43817861759569a5231e4958438039e5ff19265f469d9f1cc25bb"
+    },
+    "review-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "dfbc038b12bdcec82cafc79dc3568ad46be56898faba8178384429d4e029f290"
+    },
+    "threejs-game": {
+      "source": "OpusGameLabs/game-creator",
+      "sourceType": "github",
+      "computedHash": "82b94d0c94c93b9dd71c669aca11df913252aedd68bc025d36ced5e0729835c9"
+    }
+  }
+}
